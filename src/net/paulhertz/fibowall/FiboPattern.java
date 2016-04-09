@@ -24,6 +24,7 @@ public class FiboPattern extends PApplet {
 	public static final float INVGOLDEN = GOLDEN - 1;
 	public static final float NEXTGOLDEN = GOLDEN + 1;
 	float w = GOLDEN;
+	float tw = 1;
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree";
 	String basename = "";
@@ -32,13 +33,14 @@ public class FiboPattern extends PApplet {
 	
 	public void setup() {
 		// scaled size for NSF lobby, 1 foot = 24 pixels
-		size(1597, 610);
+		size(1536, 276);
 		smooth();
 		noLoop();
 		igno = new IgnoCodeLib(this);
 		sb = new StringBuffer(1024);
 		shapes = new ArrayList<BezShape>();
 		loadTables();
+		loadShapes();
 	}
 
 	public static void main(String args[]) {
@@ -47,13 +49,88 @@ public class FiboPattern extends PApplet {
 
 	public void draw() {
 		background(255);
+		for (BezShape bez: shapes) {
+			bez.draw();
+		}
+	}
+	
+	public void keyPressed() {
+		if ('s' == key || 'S' == key) {
+			saveAI();
+		}
+	}
+	
+
+	public void expandString(String tokens, int levels) {
+		println("level is "+ levels + "\n  "+ tokens);
+		StringBuffer temp = new StringBuffer(2 * tokens.length());
+		for (int i = 0; i < tokens.length(); i++) {
+			char ch = tokens.charAt(i);
+			String val = bloxx.get(ch);
+			temp.append(val);
+		}
+		if (levels > 0) {
+			expandString(temp.toString(), levels - 1);
+		}
+		else {
+			// "\n" is fine for output but it's the source of an off-by-one error later on in code
+			// sb.append(tokens + "\n");
+			sb.append(tokens);
+			return;
+		}
+	}
+
+	
+	public void loadTables() {
+		trial_000();
+		expandString(seedString, depth);
+		StringBuffer temp = new StringBuffer(sb.length());
+		for (int i = 0; i < sb.length(); i++) {
+			char ch = sb.charAt(i);
+			String val = bloxx.decode(ch);
+			if (null != val) {
+				temp.append(val);
+			}
+			else {
+				temp.append(ch);
+			}
+		}
+		println("---- first pass of loadTables ----");
+		println("-- first pass string length = "+ temp.length());
+		println(temp.toString());
+		Pattern p = Pattern.compile("11");
+		Matcher m = p.matcher(temp.toString());
+		// replace all "11" with "2"
+		outString = m.replaceAll("2");
+		println("---- second pass of loadTables ----");
+		println("-- string length = "+ outString.length());
+		println(outString);
+		temp.setLength(0);
+		temp.append(outString);
+		int zeroCount = 0, oneCount = 0, twoCount = 0;
+		for (int i = 0; i < temp.length(); i++) {
+			char ch = temp.charAt(i);
+			if ('0' == ch) zeroCount++;
+			else if ('1' == ch) oneCount++;
+			else if ('2' == ch) twoCount++;
+			else println("error: ch = "+ ch);
+		}
+		float total = zeroCount * INVGOLDEN + oneCount + twoCount * GOLDEN;
+		println("---- third pass of loadTables ----");
+		println("zeroCount = "+ zeroCount +", oneCount = "+ oneCount +", twoCount = "+ twoCount);
+		println("-- total = "+ total);
+		tw = total;
+	}
+	
+	
+	public void loadShapes() {
 		float x = 0;
 		float y = 0;	
 		StringBuffer buf = new StringBuffer(outString);
-		w = 1;
+		w = width/tw;
 		float bigW = w * GOLDEN;
 		float littleW = w * INVGOLDEN;
-		for (int i = 0; i < buf.length() - 1; i++) {
+		for (int i = 0; i < buf.length(); i++) {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
 				noStroke();
@@ -77,79 +154,13 @@ public class FiboPattern extends PApplet {
 				println("error: ch = "+ ch); 
 			}
 		}
-		for (BezShape bez: shapes) {
-			bez.draw();
-		}
-		println("---- x = "+ x);
+		println("---- x = "+ x);		
 	}
 	
-	public void keyPressed() {
-		if ('s' == key || 'S' == key) {
-			saveAI();
-		}
-	}
-	
-	public void expandString(String tokens, int levels) {
-		println("level is "+ levels);
-		StringBuffer temp = new StringBuffer(2 * tokens.length());
-		for (int i = 0; i < tokens.length(); i++) {
-			char ch = tokens.charAt(i);
-			String val = bloxx.get(ch);
-			temp.append(val);
-		}
-		if (levels > 0) {
-			expandString(temp.toString(), levels - 1);
-		}
-		else {
-			sb.append(tokens + "\n");
-			return;
-		}
-	}
 
-	
-	public void loadTables() {
-		trial_000();
-		expandString(seedString, depth);
-		StringBuffer temp = new StringBuffer(sb.length());
-		for (int i = 0; i < sb.length(); i++) {
-			char ch = sb.charAt(i);
-			String val = bloxx.decode(ch);
-			if (null != val) {
-				temp.append(val);
-			}
-			else {
-				temp.append(sb.charAt(i));
-			}
-		}
-		println("---- first pass of loadTables ----");
-		println("-- string length = "+ temp.length());
-		println(temp.toString());
-		Pattern p = Pattern.compile("11");
-		Matcher m = p.matcher(temp.toString());
-		// replace all "11" with "2"
-		outString = m.replaceAll("2");
-		println("---- second pass of loadTables ----");
-		println("-- string length = "+ outString.length());
-		println(outString);
-		temp.setLength(0);
-		temp.append(outString);
-		int zeroCount = 0, oneCount = 0, twoCount = 0;
-		for (int i = 0; i < temp.length() - 1; i++) {
-			char ch = temp.charAt(i);
-			if ('0' == ch) zeroCount++;
-			else if ('1' == ch) oneCount++;
-			else if ('2' == ch) twoCount++;
-			else println("error: ch = "+ ch);
-		}
-		float total = zeroCount * INVGOLDEN + oneCount + twoCount * GOLDEN;
-		println("---- third pass of loadTables ----");
-		println("zeroCount = "+ zeroCount +", oneCount = "+ oneCount +", twoCount = "+ twoCount);
-		println("-- total = "+ total);
-	}
-	
-	
 	public void trial_000() {
-		depth = 17;
+		// 17 -> 1597
+		depth = 10;
 		isDoDraw = false;
 		bloxx.put('0', "1");
 		bloxx.put('1', "01");		
@@ -158,9 +169,11 @@ public class FiboPattern extends PApplet {
 		seedString = "0";
 	}
 	
+	
 	public String getTimestamp() {
 		return nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
 	}
+	
 	
 	public void saveAI() {
 		String filename = filePath +"/fpat_"+ getTimestamp() +"_"+ fileCount++ + ".ai";
@@ -172,8 +185,10 @@ public class FiboPattern extends PApplet {
 	}
 
 	/**
-	 * saves shapes to an Adobe Illustrator file
-	 * currently not used
+	 * Saves shapes to an Adobe Illustrator file, called by saveAI().
+	 * @param aiFilename
+	 * @param comps
+	 * @param paletteColors
 	 */
 	public void saveAI(String aiFilename, ArrayList<BezShape> comps, ArrayList<Integer> paletteColors) {
 		println("saving Adobe Illustrator file " + aiFilename + "...");
@@ -186,11 +201,28 @@ public class FiboPattern extends PApplet {
 		doc.setOrg("IgnoStudio");
 		doc.setWidth(width);
 		doc.setHeight(height);
+		AIFileWriter.setUseTransparency(true);
 		// comps.add(0, bgRect());
 		println("adding components...");
+		// create a layer for the shapes
+		LayerComponent comp = new LayerComponent(this, "Shapes", 1);
+		doc.add(comp);
 		for (BezShape b : comps) {
-			doc.add(b);
+			comp.add(b);
 		}
+		// create some guides (finish making them into guides in Illustrator)
+		int panelCount = 16;
+		int panelWidth = width/panelCount;
+		comp = new LayerComponent(this, "Guidelines", 2);
+		comp.hide();
+		doc.add(comp);
+		for (int i = 1; i < panelCount; i++) {
+			BezLine bzline = BezLine.makeCoordinates(i * panelWidth, 0, i * panelWidth, height);
+			comp.add(bzline);
+		}
+		fill(255,255,255,192);
+		BezRectangle bzrect = BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height);
+		comp.add(bzrect);
 		doc.write(output);
 	}
 
