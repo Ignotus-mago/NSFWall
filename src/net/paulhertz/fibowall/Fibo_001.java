@@ -5,6 +5,8 @@ import java.io.*;
 import java.util.*;
 import java.awt.Frame;
 import java.awt.BorderLayout;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import controlP5.*;
 import net.paulhertz.aifile.*;
 import net.paulhertz.geom.Matrix3;
@@ -49,6 +51,12 @@ public class Fibo_001 extends PApplet {
 	/** variable for number of panels */
 	int panelCount = 16;
 
+	/** number formats */
+	DecimalFormat fourPlaces;
+	DecimalFormat twoPlaces;
+	DecimalFormat noPlaces;
+	DecimalFormat fourFrontPlaces;
+
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree";
 	String basename = "fibo_";
 	int fileCount = 0;
@@ -66,6 +74,7 @@ public class Fibo_001 extends PApplet {
 		// square format for test 
 		//size(864, 864);
 		smooth();
+		initDecimalFormat();
 		frameRate(15);
 		rando = new RandUtil();
 		igno = new IgnoCodeLib(this);
@@ -80,6 +89,10 @@ public class Fibo_001 extends PApplet {
 	}
 	
 	
+	/**
+	 * Entry point used in Eclipse
+	 * @param args
+	 */
 	public static void main(String args[]) {
 		PApplet.main(new String[] { "--present", "Fibo_001" });
 	}
@@ -110,6 +123,23 @@ public class Fibo_001 extends PApplet {
 	public String getTimestamp() {
 		return nf(year(),2).substring(2, 4) +  nf(month(),2) + nf(day(),2) +"_"+ nf(hour(),2) + nf(minute(),2) + nf(second(),2);
 	}
+	
+	/**
+	 * initializes the zero place and two place decimal number formatters
+	 */
+	public void initDecimalFormat() {
+		// DecimalFormat sets formatting conventions from the local system, unless we tell it otherwise.
+		// make sure we use "." for decimal separator, as in US, not a comma, as in many other countries 
+		Locale loc = Locale.US;
+		DecimalFormatSymbols dfSymbols = new DecimalFormatSymbols(loc);
+		dfSymbols.setDecimalSeparator('.');
+		fourPlaces = new DecimalFormat("0.0000", dfSymbols);
+		twoPlaces = new DecimalFormat("0.00", dfSymbols);
+		noPlaces = new DecimalFormat("00", dfSymbols);
+		fourFrontPlaces = new DecimalFormat("0000", dfSymbols);
+	}
+	
+
 
 	public void printHelp() {
 		println("'s' save");
@@ -529,8 +559,11 @@ public class Fibo_001 extends PApplet {
 			}
 			if (splitVertical) {
 				float x1 = seed.block.getLeft() + gg;
-				float w1 = (float) Math.floor( (w - 3 * gg) * shift ) + slop * gg;
-				float w2 = (float) Math.ceil( (w - 3 * gg) * (1 - shift) ) - slop * gg;
+				// to clip or not to clip
+				// float w1 = (float) Math.floor( (w - 3 * gg) * shift ) + slop * gg;
+				// float w2 = (float) Math.ceil( (w - 3 * gg) * (1 - shift) ) - slop * gg;
+				float w1 = (float) ( (w - 3 * gg) * shift ) + slop * gg;
+				float w2 = (float) ( (w - 3 * gg) * (1 - shift) ) - slop * gg;
 //				w1 = Math.round(w1) > 1 ? Math.round(w1) : 1;
 //				w2 = Math.round(w2) > 1 ? Math.round(w2) : 1;
 				if ( random(2.0f) > 1) {
@@ -571,8 +604,11 @@ public class Fibo_001 extends PApplet {
 			else {
 				// horizontal split
 				float y1 = seed.block.getTop() + gg;
-				float h1 = (float) Math.floor( (h - 3 * gg) * shift )  + slop * gg;
-				float h2 = (float) Math.ceil( (h - 3 * gg) * (1 - shift) ) - slop * gg;
+				// To clip or not to clip?
+				// float h1 = (float) Math.floor( (h - 3 * gg) * shift )  + slop * gg;
+				// float h2 = (float) Math.ceil( (h - 3 * gg) * (1 - shift) ) - slop * gg;
+				float h1 = (float) ( (h - 3 * gg) * shift )  + slop * gg;
+				float h2 = (float) ( (h - 3 * gg) * (1 - shift) ) - slop * gg;
 //				h1 = Math.round(h1) > 1 ? Math.round(h1) : 1;
 //				h2 = Math.round(h2) > 1 ? Math.round(h2) : 1;
 				if ( random(2.0f) > 1) {
