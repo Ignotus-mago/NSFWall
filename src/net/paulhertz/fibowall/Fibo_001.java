@@ -41,7 +41,7 @@ public class Fibo_001 extends PApplet {
 	/** gap between rectangles, set to zero in buildRectangles */
 	float gap = 5;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int levels = 16;
+	int levels = 11;
 	/** threshold for splitting vertically or horizontally. A value of 1.0 makes splits evenly. */
 	float verticality = 2.0f;
 	/** level where we start to do vertical divisions */
@@ -231,11 +231,11 @@ public class Fibo_001 extends PApplet {
 		// if (useNewColors) initColors();
 		if (useNewColors) initWallColors();
 		blockList = new ArrayList<TaggedRectangle>();
-		// the long rectangle
+		// the long rectangle, 10 panel widths
 		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width - 6 * panelWidth, height, NodeType.zero, levels);
 		blockList.add(tr);
 		buildRectangles(tr);
-		// the isolated square
+		// the short rectangle, 3 panel widths
 		TaggedRectangle tr2 = new TaggedRectangle(this, 13 * panelWidth, 0, 3 * panelWidth, height, NodeType.zero, levels);
 		blockList.add(tr2);
 		buildRectangles(tr2);
@@ -489,16 +489,7 @@ public class Fibo_001 extends PApplet {
 //		}
 		/**/
 		if (seed.tag == NodeType.zero) {
-//			/* BezRectangle insetR = seed.block.inset(1.618f * gg, 1.618f * gg); */
-//			if (seed.level == 11 /* && rando.randomInRange(0, 13) > 11 */) {
-//				// println("stochastic return at level " + seed.level);
-//				return;
-//			}
-//			if (seed.level == 13  && rando.randomInRange(0, 13) > 5 ) {
-//				// println("stochastic return at level " + seed.level);
-//				return;
-//			}
-			if (seed.level < 14 && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(levels) ) {
+			if (seed.level < 8 && rando.randomInRange(0, 21) > 18 ) {
 				// println("stochastic return at level " + seed.level);
 				return;
 			}
@@ -515,24 +506,10 @@ public class Fibo_001 extends PApplet {
 			radix = 5;
 			c = zeroColors[(seed.level) % radix];
 			z = oneColors[(seed.level) % radix];
-			
-//			if (seed.level == 8 && rando.randomInRange(0, 13) > 8) {
-//				println("stochastic return at level " + seed.level);
-//				return;
-//			}
-//			if (seed.level == 8 && rando.randomInRange(0, 13) > 5) {
-//				println("stochastic return at level " + seed.level);
-//				return;
-//			}
-//			if (seed.level == levels-5 && rando.randomInRange(0, 13) > 10) {
-//				println("stochastic return at level " + seed.level);
-//				return;
-//			}
-			if (seed.level < 10 && seed.tag == NodeType.one && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(levels)) {
+			if (seed.level < 8 && seed.tag == NodeType.one && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(levels)) {
 				// println("stochastic return at level - " + seed.level);
 				return;
 			}
-			
 			// vary gg to contrast zero and one branches
 			gg = 0;
 			// how far over to shift the split, a number in the range 0..1
