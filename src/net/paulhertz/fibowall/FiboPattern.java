@@ -16,7 +16,6 @@ public class FiboPattern extends PApplet {
 	String seedString = "";
 	String outString = "";
 	int depth = 5;
-	boolean isDoDraw = false;
 	public ArrayList<BezShape> shapes;
 	IgnoCodeLib igno;
 
@@ -39,7 +38,11 @@ public class FiboPattern extends PApplet {
 		igno = new IgnoCodeLib(this);
 		sb = new StringBuffer(1024);
 		shapes = new ArrayList<BezShape>();
-		loadTables();
+		// depth of 17 yields 1597 bands
+		depth = 8;
+		initLindenmeyer_000();
+		expandString(seedString, depth);
+		decodeString();
 		loadShapes();
 	}
 
@@ -62,7 +65,7 @@ public class FiboPattern extends PApplet {
 	
 
 	public void expandString(String tokens, int levels) {
-		println("level is "+ levels + "\n  "+ tokens);
+		// println("level is "+ levels + "\n  "+ tokens);
 		StringBuffer temp = new StringBuffer(2 * tokens.length());
 		for (int i = 0; i < tokens.length(); i++) {
 			char ch = tokens.charAt(i);
@@ -73,17 +76,13 @@ public class FiboPattern extends PApplet {
 			expandString(temp.toString(), levels - 1);
 		}
 		else {
-			// "\n" is fine for output but it's the source of an off-by-one error later on in code
-			// sb.append(tokens + "\n");
 			sb.append(tokens);
 			return;
 		}
 	}
 
 	
-	public void loadTables() {
-		trial_000();
-		expandString(seedString, depth);
+	public void decodeString() {
 		StringBuffer temp = new StringBuffer(sb.length());
 		for (int i = 0; i < sb.length(); i++) {
 			char ch = sb.charAt(i);
@@ -95,18 +94,20 @@ public class FiboPattern extends PApplet {
 				temp.append(ch);
 			}
 		}
-		println("---- first pass of loadTables ----");
+		println("---- depth = "+ depth +" ----");
+		println("---- first pass of decodeString ----");
 		println("-- first pass string length = "+ temp.length());
 		println(temp.toString());
 		Pattern p = Pattern.compile("11");
 		Matcher m = p.matcher(temp.toString());
 		// replace all "11" with "2"
 		outString = m.replaceAll("2");
-		println("---- second pass of loadTables ----");
+		println("---- second pass of decodeString ----");
 		println("-- string length = "+ outString.length());
 		println(outString);
 		temp.setLength(0);
 		temp.append(outString);
+		// count how many of each number we have 
 		int zeroCount = 0, oneCount = 0, twoCount = 0;
 		for (int i = 0; i < temp.length(); i++) {
 			char ch = temp.charAt(i);
@@ -116,7 +117,7 @@ public class FiboPattern extends PApplet {
 			else println("error: ch = "+ ch);
 		}
 		float total = zeroCount * INVGOLDEN + oneCount + twoCount * GOLDEN;
-		println("---- third pass of loadTables ----");
+		println("---- third pass of decodeString ----");
 		println("zeroCount = "+ zeroCount +", oneCount = "+ oneCount +", twoCount = "+ twoCount);
 		println("-- total = "+ total);
 		tw = total;
@@ -158,10 +159,7 @@ public class FiboPattern extends PApplet {
 	}
 	
 
-	public void trial_000() {
-		// 17 -> 1597
-		depth = 10;
-		isDoDraw = false;
+	public void initLindenmeyer_000() {
 		bloxx.put('0', "1");
 		bloxx.put('1', "01");		
 		bloxx.encode('0', "0");
