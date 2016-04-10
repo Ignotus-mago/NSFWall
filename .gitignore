@@ -1,11 +1,13 @@
 # Our own stuff to ignore #
 ###########################
 # we won't include libraries such as our local copy of core.jar
-#  and we'll skip Eclipse's files that refer to the local setup and system
+# we'll skip Eclipse's files that refer to the local setup and system
+# and also ignore the bin directory with compiled code and settings
 /libs
 /.settings
 /.project
 /.classpath
+/bin
 
 # Compiled source #
 ###################
