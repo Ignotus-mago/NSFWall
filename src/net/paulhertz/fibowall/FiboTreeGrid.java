@@ -11,6 +11,7 @@ import net.paulhertz.util.*;
 
 
 public class FiboTreeGrid extends PApplet {
+	RandUtil rando;
 	StringBuffer sb = new StringBuffer(1024);
 	UniBlox bloxx = new UniBlox();
 	String seedString = "";
@@ -31,6 +32,14 @@ public class FiboTreeGrid extends PApplet {
 	int[] FIB = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 
 							  2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 
 							  317811, 514229, 832040, 1346269 };
+	
+	// palette
+	int[] oneColors;
+	int[] zeroColors;
+	ArrayList<Integer> allColors;
+	int[] p142 = { 21, 34, 55,   144, 152, 233,   29, 47, 76,   178, 199, 246,   
+			           110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
+
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree/grid";
 	String basename = "";
@@ -43,10 +52,12 @@ public class FiboTreeGrid extends PApplet {
 		smooth();
 		noLoop();
 		igno = new IgnoCodeLib(this);
+		rando = new RandUtil();
 		sb = new StringBuffer(1024);
 		gridBuf = new StringBuffer();
 		shapes = new ArrayList<BezShape>();
 		grid = new ArrayList<BezShape>();
+		initWallColors();
 		// depth of 17 yields 1597 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
@@ -78,6 +89,38 @@ public class FiboTreeGrid extends PApplet {
 		}
 	}
 	
+
+	/**
+	 * Use the palette from the NSF example fibotree142
+	 */
+	public void initWallColors() {
+		allColors = new ArrayList<Integer>();
+		oneColors = new int[24];
+		zeroColors = new int[24];
+		int[] numbers = p142;
+		// we create a color and its permutations, then colors assign alternately to oneColor or zeroColor
+		int n = 0;
+		for (int j = 0; j < 4; j++) {
+			int c = Palette.composeColor(numbers[n++], numbers[n++], numbers[n++], 255);
+			int[] perm = Palette.colorPermutation(c);
+			rando.shuffle(perm);
+			for (int i = 0; i < perm.length; i++) {
+				oneColors[i + j * 6] = perm[i];
+				allColors.add(perm[i]);
+			}
+			c = Palette.composeColor(numbers[n++], numbers[n++], numbers[n++], 255);
+			perm = Palette.colorPermutation(c);
+			rando.shuffle(perm);
+			for (int i = 0; i < perm.length; i++) {
+				zeroColors[i + j * 6] = perm[i];
+				allColors.add(perm[i]);
+			}
+		}
+		rando.shuffle(zeroColors);
+		rando.shuffle(oneColors);
+	}
+
+	
 	public String pad(char padCh, int len) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < len; i++) {
@@ -87,9 +130,15 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 
+	/**
+	 * Expands L-system string and constructs grid geometry, recursively.
+	 * @param tokens   the string to expand
+	 * @param level    the current level, decremented at each pass
+	 */
 	public void expandString(String tokens, int level) {
 		// println("level is "+ level + "\n  "+ tokens);
 		// construct the string representation of the grid line by line
+		// add the grid geometry as we go
 		int pos = level + 1;
 		int fib0 = FIB[pos];
 		int fib1 = FIB[pos + 1];
@@ -98,8 +147,11 @@ public class FiboTreeGrid extends PApplet {
 		gridX = 0;
 		float yStep = height/(depth + 1.0f);
 		float xStep = ((float) width)/(FIB[depth + 1]);
+		// set the fill and stroke properties
 		noFill();
-		stroke(128);
+		stroke(254, 144, 157, 224);
+		strokeWeight(1);
+		// construct the grid geometry in this loop
 		for (int i = 0; i < tokens.length(); i++) {
 			char ch = tokens.charAt(i);
 			if ('0' == ch) {
@@ -116,9 +168,11 @@ public class FiboTreeGrid extends PApplet {
 			}
 			else println("error: ch = "+ ch);
 		}
+		// advance gridY for next recursive call
 		gridY += yStep;
+		// add a return to the output string
 		gridBuf.append(RETURN);
-		// now do the expansion
+		// now do the expansion in another loop
 		StringBuffer temp = new StringBuffer(2 * tokens.length());
 		for (int i = 0; i < tokens.length(); i++) {
 			char ch = tokens.charAt(i);
@@ -180,28 +234,29 @@ public class FiboTreeGrid extends PApplet {
 		float x = 0;
 		float y = 0;	
 		StringBuffer buf = new StringBuffer(outString);
-		w = width/tw;
+		// w = width/tw;
+		w = ((float) width)/(FIB[depth + 1]);   // same as stepX in expandString
 		float bigW = w * GOLDEN;
 		float littleW = w * INVGOLDEN;
 		for (int i = 0; i < buf.length(); i++) {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
 				noStroke();
-				fill(233, 144, 55);
-				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + littleW, height));
-				x += littleW;
+				fill(246, 199, 178, 255);
+				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
+				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
-				fill(55, 144, 233);
+				fill(178, 199, 246);
 				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
-				fill(55, 233, 144);
-				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + bigW, height));
-				x += bigW;				
+				fill(144, 152, 233, 255);
+				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
+				x += 2*w;				
 			}
 			else { 
 				println("error: ch = "+ ch); 
@@ -227,11 +282,7 @@ public class FiboTreeGrid extends PApplet {
 	
 	public void saveAI() {
 		String filename = filePath +"/fpat_"+ getTimestamp() +"_"+ fileCount++ + ".ai";
-		ArrayList<Integer> colors = new ArrayList<Integer>();
-		colors.add(Palette.composeColor(233, 144, 55, 255));
-		colors.add(Palette.composeColor(55, 144, 233, 255));
-		colors.add(Palette.composeColor(55, 233, 144, 255));
-		saveAI(filename, shapes, colors);
+		saveAI(filename, shapes, allColors);
 	}
 
 	/**
@@ -251,6 +302,7 @@ public class FiboTreeGrid extends PApplet {
 		doc.setOrg("IgnoStudio");
 		doc.setWidth(width);
 		doc.setHeight(height);
+		/* doc.setVerbose(true); */
 		AIFileWriter.setUseTransparency(true);
 		// comps.add(0, bgRect());
 		println("adding components...");
@@ -279,8 +331,8 @@ public class FiboTreeGrid extends PApplet {
 			BezLine bzline = BezLine.makeCoordinates(i * panelWidth, 0, i * panelWidth, height);
 			comp.add(bzline);
 		}
-		// add the portal as a transparent rectangle in the Panels layer
-		fill(192,192,192,127);
+		// add the portal
+		fill(192,192,192,192);
 		noStroke();
 		BezRectangle bzrect = BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height);
 		comp.add(bzrect);
