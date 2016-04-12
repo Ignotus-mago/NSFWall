@@ -564,4 +564,24 @@ public class UniBlox extends Object {
   public void encode(Character key, String value) {
     codeTable.put(key, value);
   }
+
+  public StringBuffer expandString(String tokens, int level, StringBuffer sb, boolean verbose) {
+		if (verbose) System.out.println("level is "+ level + "\n  "+ tokens);
+		StringBuffer temp = new StringBuffer(2 * tokens.length());
+		for (int i = 0; i < tokens.length(); i++) {
+			char ch = tokens.charAt(i);
+			String val = get(ch);
+			temp.append(val);
+		}
+		if (level > 0) {
+			expandString(temp.toString(), level - 1, sb, verbose);
+		}
+		else {
+			sb.append(tokens);
+		}
+		return sb;
+	}
+
+
+
 }
