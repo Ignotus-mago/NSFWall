@@ -38,7 +38,9 @@ public class FiboTreeGrid extends PApplet {
 	int[] zeroColors;
 	ArrayList<Integer> allColors;
 	int[] p142 = { 21, 34, 55,   144, 152, 233,   29, 47, 76,   178, 199, 246,   
-			           110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
+      110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
+	int[] pLight = { 199, 233, 220,   144, 157, 233,   76, 123, 199,   178, 199, 246,   
+      110, 178, 152,   233, 220, 246, 	 123, 131, 144,   36, 94, 152 };
 
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree/grid";
@@ -57,11 +59,11 @@ public class FiboTreeGrid extends PApplet {
 		gridBuf = new StringBuffer();
 		shapes = new ArrayList<BezShape>();
 		grid = new ArrayList<BezShape>();
-		initWallColors();
+		initWallColors(pLight);
 		// depth of 17 yields 1597 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 11;
+		depth = 8;
 		// prepare to attach the grid lines to the top
 		gridY = height;
 		initLindenmeyer_000();
@@ -96,11 +98,10 @@ public class FiboTreeGrid extends PApplet {
 	/**
 	 * Use the palette from the NSF example fibotree142
 	 */
-	public void initWallColors() {
+	public void initWallColors(int[] numbers) {
 		allColors = new ArrayList<Integer>();
 		oneColors = new int[24];
 		zeroColors = new int[24];
-		int[] numbers = p142;
 		// we create a color and its permutations, then colors assign alternately to oneColor or zeroColor
 		int n = 0;
 		for (int j = 0; j < 4; j++) {
@@ -247,21 +248,21 @@ public class FiboTreeGrid extends PApplet {
 				noStroke();
 				fill(246, 199, 178, 255);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeSubShapes("0", 2, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				shapes.addAll( makeInnerShapes("0", 3, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
 				fill(178, 199, 246);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeSubShapes("1", 2, w, height, x, 0, zeroColors[8], oneColors[8]) );
+				shapes.addAll( makeInnerShapes("1", 5, w, height, x, 0, zeroColors[8], oneColors[8]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
 				fill(144, 152, 233, 255);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeSubShapes("11", 2, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
+				shapes.addAll( makeInnerShapes("11", 4, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
 				x += 2*w;				
 			}
 			else { 
@@ -272,7 +273,7 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 	
-	public Collection <? extends BezShape> makeSubShapes(String tokens, int howDeep, float gridW, float gridH, 
+	public Collection <? extends BezShape> makeInnerShapes(String tokens, int howDeep, float gridW, float gridH, 
 			                                                     float left, float top, int color0, int color1) {
 		StringBuffer tbuf =  bloxx.expandString(tokens, howDeep, new StringBuffer(), false);
 		int ct0 = 0; 
