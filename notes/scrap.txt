@@ -11,14 +11,18 @@ Looks ("aesthetics") we borrow from the example image Fibotree142
   
 Other aesthetic considerations
   division of space
+  	large scale: spanning the portal, horizontal predominates
+  	mid scale: verticals emerge
+  	fine scale: verticals predominate, ruled fills in some areas
+  	where could gradients appear? large scale and fine scale, not mid scale
   tonality (lighter colors, pastels, predominate, with smaller saturated accent colors)
   spatial illusions
   	finer divisions towards top
   	"sky" and "land" divisions
   	low horizontals bridging portal
-  gradients
+  gradients in Lab color space, not linear
   	
-  
+
 
 
 ---- depth = 8 ----
