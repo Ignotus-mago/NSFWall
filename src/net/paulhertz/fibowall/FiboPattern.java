@@ -168,8 +168,11 @@ public class FiboPattern extends PApplet {
 	}
 	
 	
+	/**
+	 * @return   a string in the format yymmdd_hhmmss
+	 */
 	public String getTimestamp() {
-		return nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+		return nf(year(),2).substring(2, 4) +  nf(month(),2) + nf(day(),2) +"_"+ nf(hour(),2) + nf(minute(),2) + nf(second(),2);
 	}
 	
 	
