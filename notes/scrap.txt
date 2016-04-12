@@ -1,4 +1,11 @@
-IIgnoCodeLib 0.3 by Paul Hertz http://paulhertz.net/
+Grid system that includes the panels and their constraints. 
+  This turnes out to be a division by 144, a Fibonacci number. 
+  The total width of the wall is 1536 in. 1536/144 = 5.3 in vertical divisions.
+  The grid establishes a hierarchy of places where rectangles split in two.
+  The 144 grid spaces can be further subdivided, but maintain their integrity.
+Panel constraint: gap between panels is 1/4 in., so no really narrow shapes get placed right at the edge. 
+
+
 ---- depth = 8 ----
 ---- first pass of decodeString ----
 -- first pass string length = 34
@@ -12,7 +19,6 @@ zeroCount = 13, oneCount = 5, twoCount = 8
 ---- x = 1536.0
 
 
-gnoCodeLib 0.3 by Paul Hertz http://paulhertz.net/
 depth = 9
 ---- first pass of loadTables ----
 -- first pass string length = 55
@@ -26,7 +32,6 @@ zeroCount = 21, oneCount = 10, twoCount = 12
 ---- x = 1535.9999
 
 
-IgnoCodeLib 0.3 by Paul Hertz http://paulhertz.net/
 depth = 10
 ---- first pass of loadTables ----
 -- first pass string length = 89
@@ -41,7 +46,6 @@ zeroCount = 34, oneCount = 13, twoCount = 21
 
 
 
-IgnoCodeLib 0.3 by Paul Hertz http://paulhertz.net/
 depth = 11
 ---- first pass of loadTables ----
 -- first pass string length = 144
@@ -56,11 +60,6 @@ zeroCount = 55, oneCount = 23, twoCount = 33
 
 
 
-101011010110110101101011011010110110101101011011010110101101101011011010110101101101011011010110101101101011010110110101101101011010110110101101
-01 1 01 1 01 01 1 01 1 01 01 1 01 01 1 01 1 01 01 1 01 1 01 01 1 01 01 1 01 1 01 01 1 01 01 1 01 1 01 01 1 01 1 01 01 1 01 01 1 01 1 01 01 1 01 
-1  0 1  0 1  1  0 1  0 1  1  0 1  1  0 1  0 1  1  0 1  0 1  1  0 1  1  0 1  0 1  1  0 1  1  0 1  0 1  1  0 1  0 1  1  0 1  1  0 1  0 1  1  0 1  
-0  1    1    0  1    1    0  1    0  1    1    0  1    1    0  1    0  1    1    0  1    0  1    1    0  1    1    0  1    0  1    1    0  1    
-1       0    1       0    1       1       0    1       0    1       1       0    1       1       0    1       0    1       1       0    1       
 
 
 0                                                                                                                                               
@@ -105,5 +104,6 @@ zeroCount = 55, oneCount = 23, twoCount = 33
 1__0 1__0 1__1__0 1__0 1__1__0 1__1__0 1__0 1__1__0 1__0 1__1__0 1__1__0 1__0 1__1__0 1__1__0 1__0 1__1__0 1__0 1__1__0 1__1__0 1__0 1__1__0 1__
 01_1_01_1_01_01_1_01_1_01_01_1_01_01_1_01_1_01_01_1_01_1_01_01_1_01_01_1_01_1_01_01_1_01_01_1_01_1_01_01_1_01_1_01_01_1_01_01_1_01_1_01_01_1_01_
 101011010110110101101011011010110110101101011011010110101101101011011010110101101101011011010110101101101011010110110101101101011010110110101101
+
 
 
