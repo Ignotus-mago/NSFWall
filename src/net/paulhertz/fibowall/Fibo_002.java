@@ -41,7 +41,7 @@ public class Fibo_002 extends PApplet {
 	/** gap between rectangles, set to zero in buildRectangles */
 	float gap = 5;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int levels = 11;
+	int depth = 11;
 	/** threshold for splitting vertically or horizontally. A value of 1.0 makes splits evenly. */
 	float verticality = 2.0f;
 	/** level where we start to do vertical divisions */
@@ -231,11 +231,11 @@ public class Fibo_002 extends PApplet {
 		if (useNewColors) initWallColors();
 		blockList = new ArrayList<TaggedRectangle>();
 		// the long rectangle, 10 panel widths
-		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width - 6 * panelWidth, height, NodeType.zero, levels);
+		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width - 6 * panelWidth, height, NodeType.zero, depth);
 		blockList.add(tr);
 		buildRectangles(tr);
 		// the short rectangle, 3 panel widths
-		TaggedRectangle tr2 = new TaggedRectangle(this, 13 * panelWidth, 0, 3 * panelWidth, height, NodeType.zero, levels);
+		TaggedRectangle tr2 = new TaggedRectangle(this, 13 * panelWidth, 0, 3 * panelWidth, height, NodeType.zero, depth);
 		blockList.add(tr2);
 		buildRectangles(tr2);
 	}
@@ -324,7 +324,7 @@ public class Fibo_002 extends PApplet {
 			radix = 5;
 			c = zeroColors[(seed.level) % radix];
 			z = oneColors[(seed.level) % radix];
-			if (seed.level < 8 && seed.tag == NodeType.one && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(levels)) {
+			if (seed.level < 8 && seed.tag == NodeType.one && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(depth)) {
 				// println("stochastic return at level - " + seed.level);
 				return;
 			}
@@ -463,7 +463,7 @@ public class Fibo_002 extends PApplet {
 		doc.setWidth(width);
 		doc.setHeight(height);
 		int layer = -1;
-		for (int i = levels; i >= 0; i--) {
+		for (int i = depth; i >= 0; i--) {
 			layer = i + 1;
 			LayerComponent comp = new LayerComponent(this, "Layer " + (layer), layer);
 			if (chx.get(i) == 1) {
@@ -490,7 +490,7 @@ public class Fibo_002 extends PApplet {
 			comp.add(gZero);
 		}
 		// guides
-		layer = levels + 2;
+		layer = depth + 2;
 		LayerComponent comp = new LayerComponent(this, "Guidelines", layer);
 		comp.hide();
 		doc.add(comp);
@@ -656,7 +656,7 @@ public class Fibo_002 extends PApplet {
 			chx = new ArrayList<Integer>();
 			// add items to a checkbox.
 			int i = 0;
-			for (i = 0; i < levels; i++) {
+			for (i = 0; i < depth; i++) {
 				checkbox.addItem("so_"+i, i);
 				chx.add(i, new Integer(0));
 			}
