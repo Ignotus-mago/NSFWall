@@ -5,6 +5,21 @@ Grid system that includes the panels and their constraints.
   The 144 grid spaces can be further subdivided, but maintain their integrity.
 Panel constraint: gap between panels is 1/4 in., so no really narrow shapes get placed right at the edge. 
 
+Looks ("aesthetics") we borrow from the example image Fibotree142
+  vertical divisions predominate
+  palette (within limits)
+  
+Other aesthetic considerations
+  division of space
+  tonality (lighter colors, pastels, predominate, with smaller saturated accent colors)
+  spatial illusions
+  	finer divisions towards top
+  	"sky" and "land" divisions
+  	low horizontals bridging portal
+  gradients
+  	
+  
+
 
 ---- depth = 8 ----
 ---- first pass of decodeString ----
