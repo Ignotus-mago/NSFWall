@@ -24,11 +24,11 @@ public class FiboTreeGrid extends PApplet {
 	float tw = 1;
 	float gridX = 0;
 	float gridY = 0;
-
 	public static final float GOLDEN = (float)((Math.sqrt(5) - 1)/2.0 + 1);
 	public static final float INVGOLDEN = GOLDEN - 1;
 	public static final float NEXTGOLDEN = GOLDEN + 1;
 	float w = GOLDEN;
+	// sum a them Fibonacci numbers
 	int[] FIB = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 
 							  2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 
 							  317811, 514229, 832040, 1346269 };
@@ -42,7 +42,7 @@ public class FiboTreeGrid extends PApplet {
 
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree/grid";
-	String basename = "";
+	String basename = "fgrid";
 	int fileCount = 1;
 
 	
@@ -62,11 +62,14 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
 		depth = 12;
+		// prepare to attach the grid lines to the top
+		gridY = height;
 		initLindenmeyer_000();
 		expandString(seedString, depth);
 		decodeString();
 		loadShapes();
 		println(gridBuf.toString());
+		println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
 
 	public static void main(String args[]) {
@@ -157,19 +160,19 @@ public class FiboTreeGrid extends PApplet {
 			if ('0' == ch) {
 				gridBuf.append(ch + pad0);
 				// grid.add(BezRectangle.makeLeftTopWidthHeight(gridX, gridY, fib0 * xStep, height/(depth + 1)));
-				grid.add(BezLine.makeCoordinates(gridX, gridY, gridX, gridY + yStep));
+				grid.add(BezLine.makeCoordinates(gridX, gridY, gridX, gridY - yStep));
 				gridX += fib0 * xStep;
 			}
 			else if ('1' == ch) {
 				gridBuf.append(ch + pad1);
 				// grid.add(BezRectangle.makeLeftTopWidthHeight(gridX, gridY, fib1 * xStep, height/(depth + 1)));
-				grid.add(BezLine.makeCoordinates(gridX, gridY, gridX, gridY + yStep));
+				grid.add(BezLine.makeCoordinates(gridX, gridY, gridX, gridY - yStep));
 				gridX += fib1 * xStep;
 			}
 			else println("error: ch = "+ ch);
 		}
-		// advance gridY for next recursive call
-		gridY += yStep;
+		// decrement gridY for next recursive call
+		gridY -= yStep;
 		// add a return to the output string
 		gridBuf.append(RETURN);
 		// now do the expansion in another loop
@@ -244,18 +247,21 @@ public class FiboTreeGrid extends PApplet {
 				noStroke();
 				fill(246, 199, 178, 255);
 				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
+				// shapes.addAll( expandShape("0", 4, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
 				fill(178, 199, 246);
 				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
+				// shapes.addAll( expandShape("1", 4, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
 				fill(144, 152, 233, 255);
 				shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
+				// shapes.addAll( expandShape("11", 4, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += 2*w;				
 			}
 			else { 
@@ -263,6 +269,37 @@ public class FiboTreeGrid extends PApplet {
 			}
 		}
 		println("---- x = "+ x);		
+	}
+	
+	
+	public Collection <? extends BezShape> expandShape(String tokens, int howDeep, float gridW, float gridH, 
+			                                               float left, float top, int color0, int color1) {
+		StringBuffer tbuf =  bloxx.expandString(tokens, howDeep, new StringBuffer(), false);
+		int ct0 = 0; 
+		int ct1 = 0;
+		for (int i = 0; i < tbuf.length(); i++) {
+			char ch = tbuf.charAt(i);
+			if ('0' == ch) ct0++;
+			else if ('1' == ch) ct1++;
+			else println("---- Parse error in expandShape var tokens: "+ ch);
+		}
+		float w0 = gridW / (ct0 + ct1 * INVGOLDEN);
+		float w1 = w0 * GOLDEN;
+		ArrayList <BezShape> bz = new ArrayList <BezShape>();
+		for (int i = 0; i < tbuf.length(); i++) {
+			char ch = tbuf.charAt(i);
+			if ('0' == ch) {
+				fill(color0);
+				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH));
+				left += w0;
+			}
+			else if ('1' == ch) {
+				fill(color1);
+				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH));
+				left += w1;
+			}
+		}
+		return bz;
 	}
 	
 
@@ -275,13 +312,16 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 	
+	/**
+	 * @return   a string in the format yymmdd_hhmmss, a complete timestamp down to the second
+	 */
 	public String getTimestamp() {
-		return nf(day(),2) + nf(hour(),2) + nf(minute(),2) + nf(second(),2);
+		return nf(year(),2).substring(2, 4) + nf(month(),2) + nf(day(),2) +"_"+ nf(hour(),2) + nf(minute(),2) + nf(second(),2);
 	}
 	
 	
 	public void saveAI() {
-		String filename = filePath +"/fpat_"+ getTimestamp() +"_"+ fileCount++ + ".ai";
+		String filename = filePath +"/"+ basename + getTimestamp() +"_"+ fileCount++ + ".ai";
 		saveAI(filename, shapes, allColors);
 	}
 
