@@ -26,7 +26,7 @@ public class Fibo_002 extends PApplet {
 	public static final float INVGOLDEN = GOLDEN - 1;
 	public static final float ROOTTWO = (float)(Math.sqrt(2.0));
 	public static final float INVROOTTWO = (float)(1/Math.sqrt(2.0));
-	//sum a them Fibonacci numbers
+	// sum a them Fibonacci numbers
 	public static int[] FIB = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 
 							  2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 
 							  317811, 514229, 832040, 1346269 };
@@ -57,11 +57,11 @@ public class Fibo_002 extends PApplet {
 	
 	/** reference to the graphics and i/o library */
 	IgnoCodeLib igno;
-	/** gap between rectangles, set to zero in buildRectangles */
-	float gap = 5;
+	/** gap between rectangles, which we won't use for the NSF wall */
+	float gap = 0;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int depth = 11;
-	/** threshold for splitting vertically or horizontally. A value of 1.0 makes splits evenly. */
+	int depth = 13;
+	/** threshold for splitting rectangles: values below 1 favor horizontal, values above 1 favor vertical. */
 	float verticality = 2.0f;
 	/** level where we start to do vertical divisions */
 	int startVertical = 9;
@@ -332,100 +332,85 @@ public class Fibo_002 extends PApplet {
 	// TODO this is the critical method for creating geometry, read it, clean it, and fix it.
 	/**
 	 * Recursively splits TaggedRectangles into new TaggedRectangles.
-	 * @param seed   a TaggedRectangle to be split into new TaggedRectangles.
+	 * @param seedTR   a TaggedRectangle to be split into new TaggedRectangles.
 	 */
-	public void buildRectangles(TaggedRectangle seed) {
-		// println("level " + seed.level);
-		float gg = gap;
-		if (seed.level < 1) return;
-		int c, z;
+	public void buildRectangles(TaggedRectangle seedTR) {
+		// println("level " + seedTR.level);
+		// end recursion when the level field stored in seedTR hits 0
+		if (seedTR.level < 1) return;
+		// select colors to use for TR tagged "1" and "0" at current level
+		int zeroColor, oneColor;
 		int radix = 5;
-		c = zeroColors[(seed.level) % radix];
-		z = oneColors[(seed.level) % radix];
-		if (seed.tag == NodeType.zero) {
-			if (seed.level < 8 && rando.randomInRange(0, 21) > 18 ) {
+		zeroColor = zeroColors[(seedTR.level) % radix];
+		oneColor = oneColors[(seedTR.level) % radix];
+		if (seedTR.tag == NodeType.zero) {
+			// we randomly decide to omit a branch at specified levels
+			// TODO make TRs invisible instead of omitting them (?)
+			if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
 				// println("stochastic return at level " + seed.level);
 				return;
 			}
-			gg = 0;
-			BezRectangle insetR = seed.block.inset(gg, gg);
-			insetR.setFillColor(c);
+			// on the zero branches, the TR does not split but we copy its rectangle to a new TR
+			// if gap > 0 the new rectangle is inset by gap
+			BezRectangle insetR = seedTR.block.inset(gap, gap);
+			insetR.setFillColor(zeroColor);
 			insetR.setNoStroke();
-			TaggedRectangle tr = new TaggedRectangle(this, insetR, NodeType.one, seed.level - 1);
+			TaggedRectangle tr = new TaggedRectangle(this, insetR, NodeType.one, seedTR.level - 1);
 			blockList.add(tr);
 			// println("inset at level " + seed.level);
 			buildRectangles(tr);
 		}
-		else if (seed.tag == NodeType.one) {
-			radix = 5;
-			c = zeroColors[(seed.level) % radix];
-			z = oneColors[(seed.level) % radix];
-			if (seed.level < 8 && seed.tag == NodeType.one && rando.randomInRange(0, 21) > 13 + 7 * (seed.level)/(depth)) {
+		else if (seedTR.tag == NodeType.one) {
+			// we randomly decide to omit a branch at specified levels, 
+			// see earlier code and Fibo_001.java for some variations
+			// TODO make TRs invisible instead of omitting them (?)
+			if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
 				// println("stochastic return at level - " + seed.level);
 				return;
 			}
-			// vary gg to contrast zero and one branches
-			gg = 0;
+			// on the one branches, the rectangle splits in two horizontally or vertically
 			// how far over to shift the split, a number in the range 0..1
-			float shift = INVGOLDEN;
 			float[] notches = new float[13];
 			int i = 0;
 			for (; i < 8; i++) notches[i] = INVGOLDEN;
 			for (; i < 13; i++) notches[i] = INVGOLDEN * INVGOLDEN;
-			shift = rando.randomElement(notches);
-			// slop is an extra gap factor, varies with depth
-			float slop; // = (seed.level > 2 * levels/3) ? 0 : (seed.level > levels/3) ? 0 : 0;
-			slop = 0;
-			float w = seed.block.getWidth();
-			float h = seed.block.getHeight();
+			float shift = rando.randomElement(notches);
+			float w = seedTR.block.getWidth();
+			float h = seedTR.block.getHeight();
+			// decide whether to split vertically or horizontally
 			boolean splitVertical = true;
 			if (w == h) {
+				// if the rectangle is a square, 50-50 percent chance of splitting either way
 				if (random(2.0f) > 1) {
 					splitVertical = false;
 				}
 			}
-//			else if (w < h * ((seed.level)/(levels) * 0.67 + 0.01)) {
 			else if (w < h / verticality) {
 				splitVertical = false;
 			}
 			if (splitVertical) {
-				float x1 = seed.block.getLeft() + gg;
-				// to clip or not to clip
-				// float w1 = (float) Math.floor( (w - 3 * gg) * shift ) + slop * gg;
-				// float w2 = (float) Math.ceil( (w - 3 * gg) * (1 - shift) ) - slop * gg;
-				float w1 = (float) ( (w - 3 * gg) * shift ) + slop * gg;
-				float w2 = (float) ( (w - 3 * gg) * (1 - shift) ) - slop * gg;
-//				w1 = Math.round(w1) > 1 ? Math.round(w1) : 1;
-//				w2 = Math.round(w2) > 1 ? Math.round(w2) : 1;
-				if ( random(2.0f) > 1) {
-					float temp = w1;
-					w1 = w2;
-					w2 = temp;
-				}
-				float x2 = x1 + w1 + gg;
-				float y1 = seed.block.getTop() + gg;
-				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w1, h - 2 * gg);
-				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x2, y1, w2, h - 2 * gg);
-				//println(r1.bezType +" "+ (r1.bezType() == BezShape.BezType.BEZ_RECTANGLE));
+				float x1 = seedTR.block.getLeft() + gap;
+				float w1 = (float) ( (w - 3 * gap) * shift ) + gap;
+				float w2 = (float) ( (w - 3 * gap) * (1 - shift) ) - gap;
+				// TODO not sure why we need this random swap, remove it on the next iteration
+//				if ( random(2.0f) > 1) {
+//					float temp = w1;
+//					w1 = w2;
+//					w2 = temp;
+//				}
+				float x2 = x1 + w1 + gap;
+				float y1 = seedTR.block.getTop() + gap;
+				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w1, h - 2 * gap);
+				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x2, y1, w2, h - 2 * gap);
+				// println(r1.bezType +" "+ (r1.bezType() == BezShape.BezType.BEZ_RECTANGLE));
 				TaggedRectangle tr1;
 				TaggedRectangle tr2;
-//				if (random(2.0f) > 1) {
-				if (true) {
-					r1.setFillColor(c);
-					r2.setFillColor(z);
-					r1.setNoStroke();
-					r2.setNoStroke();
-					tr1 = new TaggedRectangle(this, r1, NodeType.one, seed.level - 1);
-					tr2 = new TaggedRectangle(this, r2, NodeType.zero, seed.level - 1);
-				}
-//				else {
-//					r1.setFillColor(z);
-//					r2.setFillColor(c);
-//					r1.setNoStroke();
-//					r2.setNoStroke();
-//					tr1 = new TaggedRectangle(this, r1, NodeType.zero, seed.level - 1);
-//					tr2 = new TaggedRectangle(this, r2, NodeType.one, seed.level - 1);
-//				}
+				r1.setFillColor(zeroColor);
+				r2.setFillColor(oneColor);
+				r1.setNoStroke();
+				r2.setNoStroke();
+				tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
+				tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
 				blockList.add(tr1);
 				blockList.add(tr2);
 				//println("split at level " + seed.level);
@@ -434,52 +419,47 @@ public class Fibo_002 extends PApplet {
 			}
 			else {
 				// horizontal split
-				float y1 = seed.block.getTop() + gg;
-				// To clip or not to clip?
-				// float h1 = (float) Math.floor( (h - 3 * gg) * shift )  + slop * gg;
-				// float h2 = (float) Math.ceil( (h - 3 * gg) * (1 - shift) ) - slop * gg;
-				float h1 = (float) ( (h - 3 * gg) * shift )  + slop * gg;
-				float h2 = (float) ( (h - 3 * gg) * (1 - shift) ) - slop * gg;
-//				h1 = Math.round(h1) > 1 ? Math.round(h1) : 1;
-//				h2 = Math.round(h2) > 1 ? Math.round(h2) : 1;
-				if ( random(2.0f) > 1) {
-					float temp = h1;
-					h1 = h2;
-					h2 = temp;
-				}
-				float y2 = y1 + h1 + gg;
-				float x1 = seed.block.getLeft() + gg;
-				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w - 2 * gg, h1);
-				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x1, y2, w - 2 * gg, h2);
+				float y1 = seedTR.block.getTop() + gap;
+				float h1 = (float) ( (h - 3 * gap) * shift ) + gap;
+				float h2 = (float) ( (h - 3 * gap) * (1 - shift) ) - gap;
+				// TODO not sure why we need this random swap, remove it on the next iteration
+//				if ( random(2.0f) > 1) {
+//					float temp = h1;
+//					h1 = h2;
+//					h2 = temp;
+//				}
+				float y2 = y1 + h1 + gap;
+				float x1 = seedTR.block.getLeft() + gap;
+				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w - 2 * gap, h1);
+				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x1, y2, w - 2 * gap, h2);
 				TaggedRectangle tr1;
 				TaggedRectangle tr2;
-//				if (random(2.0f) > 1) {
-				if (true) {
-					r1.setFillColor(c);
-					r2.setFillColor(z);
-					r1.setNoStroke();
-					r2.setNoStroke();
-					tr1 = new TaggedRectangle(this, r1, NodeType.one, seed.level - 1);
-					tr2 = new TaggedRectangle(this, r2, NodeType.zero, seed.level - 1);
-				}
-//				else {
-//					r1.setFillColor(z);
-//					r2.setFillColor(c);
-//					r1.setNoStroke();
-//					r2.setNoStroke();
-//					tr1 = new TaggedRectangle(this, r1, NodeType.zero, seed.level - 1);
-//					tr2 = new TaggedRectangle(this, r2, NodeType.one, seed.level - 1);
-//				}
+				r1.setFillColor(zeroColor);
+				r2.setFillColor(oneColor);
+				r1.setNoStroke();
+				r2.setNoStroke();
+				tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
+				tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
 				blockList.add(tr1);
 				blockList.add(tr2);
-				//println("split at level " + seed.level);
+				// println("split at level " + seed.level);
 				buildRectangles(tr1);
 				buildRectangles(tr2);
 			}
 		}
 		else {
-			println("error, missing tag value!");
+			println("ERROR, missing tag value!");
 		}
+	}
+	
+	// placeholder for breaking out code from buildRectangles
+	public void addZeroNode() {
+		
+	}
+	
+	// placeholder for breaking out code from buildRectangles
+	public void addOneNode() {
+		
 	}
 
 	
@@ -490,7 +470,7 @@ public class Fibo_002 extends PApplet {
 		// println("saving Adobe Illustrator file " + aiFilename + "...");
 		PrintWriter output = createWriter(aiFilename);
 		DocumentComponent doc = new DocumentComponent(this, "IgnoDoc");
-		doc.setVerbose(true);
+		doc.setVerbose(false);
 		Palette pal = doc.getPalette();
 		pal.addBlackWhiteGray();
 		pal.addColors(paletteColors);
@@ -504,6 +484,7 @@ public class Fibo_002 extends PApplet {
 			LayerComponent comp = new LayerComponent(this, "Layer " + (layer), layer);
 			if (chx.get(i) == 1) {
 				comp.hide();
+				comp.setName("Layer " + (layer) + "h");
 			}
 			doc.add(comp);
 			// PApplet.println("set visible to " + comp.isVisible());
@@ -511,6 +492,9 @@ public class Fibo_002 extends PApplet {
 			GroupComponent gOne = new GroupComponent(this);
 			for (TaggedRectangle tr : blockList) {
 				if (tr.level == i) {
+					/*
+					 * hiding the layers should be sufficient
+					 * then we can try hiding "omitted" geometry instead
 					if (chx.get(tr.level) == 0) {
 						// comp.add(tr.block);
 						tr.block.show();
@@ -518,6 +502,7 @@ public class Fibo_002 extends PApplet {
 					else {
 						tr.block.hide();
 					}
+					*/
 					if (tr.tag == NodeType.one) gOne.add(tr.block);
 					if (tr.tag == NodeType.zero) gZero.add(tr.block);
 				}
