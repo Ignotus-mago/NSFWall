@@ -4,12 +4,10 @@ import processing.core.PApplet;
 import java.io.*;
 import java.util.*;
 import java.awt.Frame;
-import java.awt.BorderLayout;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import controlP5.*;
 import net.paulhertz.aifile.*;
-import net.paulhertz.geom.Matrix3;
 import net.paulhertz.util.*;
 
 
@@ -181,13 +179,6 @@ public class Fibo_002 extends PApplet {
 			// generate a new instance of subdivided rectangle geometry
 			revYourEngines(true);
 		}
-		/**
-		// TODO code no longer functional if ever. Remove on next revision.
-		int lev = 0;
-		for (lev = 0; lev < chx.size(); lev++) {
-			if (0 == chx.get(lev)) break;
-		}
-		*/
 		for (TaggedRectangle tr : blockList) {
 			if (0 == chx.get(tr.level)) {
 				tr.block.draw();
@@ -344,122 +335,109 @@ public class Fibo_002 extends PApplet {
 		zeroColor = zeroColors[(seedTR.level) % radix];
 		oneColor = oneColors[(seedTR.level) % radix];
 		if (seedTR.tag == NodeType.zero) {
-			// we randomly decide to omit a branch at specified levels
-			// TODO make TRs invisible instead of omitting them (?)
-			if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
-				// println("stochastic return at level " + seed.level);
-				return;
-			}
-			// on the zero branches, the TR does not split but we copy its rectangle to a new TR
-			// if gap > 0 the new rectangle is inset by gap
-			BezRectangle insetR = seedTR.block.inset(gap, gap);
-			insetR.setFillColor(zeroColor);
-			insetR.setNoStroke();
-			TaggedRectangle tr = new TaggedRectangle(this, insetR, NodeType.one, seedTR.level - 1);
-			blockList.add(tr);
-			// println("inset at level " + seed.level);
-			buildRectangles(tr);
+			addZeroNode(seedTR, zeroColor);
 		}
 		else if (seedTR.tag == NodeType.one) {
-			// we randomly decide to omit a branch at specified levels, 
-			// see earlier code and Fibo_001.java for some variations
-			// TODO make TRs invisible instead of omitting them (?)
-			if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
-				// println("stochastic return at level - " + seed.level);
-				return;
-			}
-			// on the one branches, the rectangle splits in two horizontally or vertically
-			// how far over to shift the split, a number in the range 0..1
-			float[] notches = new float[13];
-			int i = 0;
-			for (; i < 8; i++) notches[i] = INVGOLDEN;
-			for (; i < 13; i++) notches[i] = INVGOLDEN * INVGOLDEN;
-			float shift = rando.randomElement(notches);
-			float w = seedTR.block.getWidth();
-			float h = seedTR.block.getHeight();
-			// decide whether to split vertically or horizontally
-			boolean splitVertical = true;
-			if (w == h) {
-				// if the rectangle is a square, 50-50 percent chance of splitting either way
-				if (random(2.0f) > 1) {
-					splitVertical = false;
-				}
-			}
-			else if (w < h / verticality) {
-				splitVertical = false;
-			}
-			if (splitVertical) {
-				float x1 = seedTR.block.getLeft() + gap;
-				float w1 = (float) ( (w - 3 * gap) * shift ) + gap;
-				float w2 = (float) ( (w - 3 * gap) * (1 - shift) ) - gap;
-				// TODO not sure why we need this random swap, remove it on the next iteration
-//				if ( random(2.0f) > 1) {
-//					float temp = w1;
-//					w1 = w2;
-//					w2 = temp;
-//				}
-				float x2 = x1 + w1 + gap;
-				float y1 = seedTR.block.getTop() + gap;
-				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w1, h - 2 * gap);
-				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x2, y1, w2, h - 2 * gap);
-				// println(r1.bezType +" "+ (r1.bezType() == BezShape.BezType.BEZ_RECTANGLE));
-				TaggedRectangle tr1;
-				TaggedRectangle tr2;
-				r1.setFillColor(zeroColor);
-				r2.setFillColor(oneColor);
-				r1.setNoStroke();
-				r2.setNoStroke();
-				tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
-				tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
-				blockList.add(tr1);
-				blockList.add(tr2);
-				//println("split at level " + seed.level);
-				buildRectangles(tr1);
-				buildRectangles(tr2);
-			}
-			else {
-				// horizontal split
-				float y1 = seedTR.block.getTop() + gap;
-				float h1 = (float) ( (h - 3 * gap) * shift ) + gap;
-				float h2 = (float) ( (h - 3 * gap) * (1 - shift) ) - gap;
-				// TODO not sure why we need this random swap, remove it on the next iteration
-//				if ( random(2.0f) > 1) {
-//					float temp = h1;
-//					h1 = h2;
-//					h2 = temp;
-//				}
-				float y2 = y1 + h1 + gap;
-				float x1 = seedTR.block.getLeft() + gap;
-				BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w - 2 * gap, h1);
-				BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x1, y2, w - 2 * gap, h2);
-				TaggedRectangle tr1;
-				TaggedRectangle tr2;
-				r1.setFillColor(zeroColor);
-				r2.setFillColor(oneColor);
-				r1.setNoStroke();
-				r2.setNoStroke();
-				tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
-				tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
-				blockList.add(tr1);
-				blockList.add(tr2);
-				// println("split at level " + seed.level);
-				buildRectangles(tr1);
-				buildRectangles(tr2);
-			}
+			addOneNode(seedTR, zeroColor, oneColor);
 		}
 		else {
 			println("ERROR, missing tag value!");
 		}
 	}
 	
-	// placeholder for breaking out code from buildRectangles
-	public void addZeroNode() {
-		
+	public void addZeroNode(TaggedRectangle seedTR, int zeroColor) {
+		// we randomly decide to omit a branch at specified levels
+		// TODO make TRs invisible instead of omitting them (?)
+		if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
+			// println("stochastic return at level " + seed.level);
+			return;
+		}
+		// on the zero branches, the TR does not split but we copy its rectangle to a new TR
+		// if gap > 0 the new rectangle is inset by gap
+		BezRectangle insetR = seedTR.block.inset(gap, gap);
+		insetR.setFillColor(zeroColor);
+		insetR.setNoStroke();
+		TaggedRectangle tr = new TaggedRectangle(this, insetR, NodeType.one, seedTR.level - 1);
+		blockList.add(tr);
+		// println("inset at level " + seed.level);
+		buildRectangles(tr);
 	}
 	
 	// placeholder for breaking out code from buildRectangles
-	public void addOneNode() {
-		
+	public void addOneNode(TaggedRectangle seedTR, int zeroColor, int oneColor) {
+		// we randomly decide to omit a branch at specified levels, 
+		// see earlier code and Fibo_001.java for some variations
+		// TODO make TRs invisible instead of omitting them (?)
+		if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
+			// println("stochastic return at level - " + seed.level);
+			return;
+		}
+		// on the one branches, the rectangle splits in two horizontally or vertically
+		// how far over to shift the split, a number in the range 0..1
+		float[] notches = new float[13];
+		int i = 0;
+		for (; i < 8; i++) notches[i] = INVGOLDEN;
+		for (; i < 13; i++) notches[i] = INVGOLDEN * INVGOLDEN;
+		float shift = rando.randomElement(notches);
+		float w = seedTR.block.getWidth();
+		float h = seedTR.block.getHeight();
+		// decide whether to split vertically or horizontally
+		boolean splitVertical = true;
+		if (w == h) {
+			// if the rectangle is a square, 50-50 percent chance of splitting either way
+			if (random(2.0f) > 1) {
+				splitVertical = false;
+			}
+		}
+		else if (w < h / verticality) {
+			splitVertical = false;
+		}
+		if (splitVertical) {
+			float x1 = seedTR.block.getLeft() + gap;
+			float w1 = (float) ( (w - 3 * gap) * shift ) + gap;
+			float w2 = (float) ( (w - 3 * gap) * (1 - shift) ) - gap;
+			float x2 = x1 + w1 + gap;
+			float y1 = seedTR.block.getTop() + gap;
+			BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w1, h - 2 * gap);
+			BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x2, y1, w2, h - 2 * gap);
+			// println(r1.bezType +" "+ (r1.bezType() == BezShape.BezType.BEZ_RECTANGLE));
+			TaggedRectangle tr1;
+			TaggedRectangle tr2;
+			r1.setFillColor(zeroColor);
+			r2.setFillColor(oneColor);
+			r1.setNoStroke();
+			r2.setNoStroke();
+			tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
+			tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
+			blockList.add(tr1);
+			blockList.add(tr2);
+			//println("split at level " + seed.level);
+			buildRectangles(tr1);
+			buildRectangles(tr2);
+		}
+		else {
+			// horizontal split
+			float y1 = seedTR.block.getTop() + gap;
+			float h1 = (float) ( (h - 3 * gap) * shift ) + gap;
+			float h2 = (float) ( (h - 3 * gap) * (1 - shift) ) - gap;
+			float y2 = y1 + h1 + gap;
+			float x1 = seedTR.block.getLeft() + gap;
+			BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w - 2 * gap, h1);
+			BezRectangle r2 = BezRectangle.makeLeftTopWidthHeight(this, x1, y2, w - 2 * gap, h2);
+			TaggedRectangle tr1;
+			TaggedRectangle tr2;
+			r1.setFillColor(zeroColor);
+			r2.setFillColor(oneColor);
+			r1.setNoStroke();
+			r2.setNoStroke();
+			tr1 = new TaggedRectangle(this, r1, NodeType.one, seedTR.level - 1);
+			tr2 = new TaggedRectangle(this, r2, NodeType.zero, seedTR.level - 1);
+			blockList.add(tr1);
+			blockList.add(tr2);
+			// println("split at level " + seed.level);
+			buildRectangles(tr1);
+			buildRectangles(tr2);
+		}
 	}
 
 	
@@ -484,7 +462,7 @@ public class Fibo_002 extends PApplet {
 			LayerComponent comp = new LayerComponent(this, "Layer " + (layer), layer);
 			if (chx.get(i) == 1) {
 				comp.hide();
-				comp.setName("Layer " + (layer) + "h");
+				comp.setName("--Layer " + (layer));
 			}
 			doc.add(comp);
 			// PApplet.println("set visible to " + comp.isVisible());
@@ -528,125 +506,12 @@ public class Fibo_002 extends PApplet {
 		br.setFillColor(f);
 		return br;
 	}
-
-	
-	// TODO Node class is not currently in use, remove on next revision
-	// apparently it was intended for linked lists or trees
-	class Node extends java.lang.Object {
-		public Node left;
-		public Node right;
-		public Node parent;
-		public NodeType type;
-		public DisplayComponent comp;
-
-		public Node(DisplayComponent comp, Node left) {
-			this.comp = comp;
-			this.left = left;
-			this.type = NodeType.zero;
-		}
-
-		public Node(DisplayComponent comp, Node left, Node right) {
-			this.comp = comp;
-			this.left = left;
-			this.right = right;
-			this.type = NodeType.one;
-		}
-
-		/**
-		 * @return the left
-		 */
-		public Node getLeft() {
-			return left;
-		}
-
-		/**
-		 * @param left the left to set
-		 */
-		public void setLeft(Node left) {
-			this.left = left;
-		}
-
-		/**
-		 * @return the right
-		 */
-		public Node getRight() {
-			return right;
-		}
-
-		/**
-		 * @param right the right to set
-		 */
-		public void setRight(Node right) {
-			this.right = right;
-		}
-
-		/**
-		 * @return the parent
-		 */
-		public Node getParent() {
-			return parent;
-		}
-
-		/**
-		 * @param parent the parent to set
-		 */
-		public void setParent(Node parent) {
-			this.parent = parent;
-		}
-
-		/**
-		 * @return the type
-		 */
-		public NodeType getType() {
-			return type;
-		}
-
-		/**
-		 * @param type the type to set
-		 */
-		public void setType(NodeType type) {
-			this.type = type;
-		}
-
-		/**
-		 * @return the comp
-		 */
-		public DisplayComponent getComp() {
-			return comp;
-		}
-
-		/**
-		 * @param comp the comp to set
-		 */
-		public void setComp(DisplayComponent comp) {
-			this.comp = comp;
-		}
-
-	} // end Node class
-	
-	StringBuffer sb = new StringBuffer(1024);
-	
-	// TODO we're expanding the L-system string in code, we could use the UniBlox class
-	public void expandString(String tokens, int levels) {
-		while (levels > 0) {
-			sb.append(tokens);
-			StringBuffer temp = new StringBuffer(2 * tokens.length());
-			for (int i = 0; i < tokens.length(); i++) {
-				if ('0' == tokens.charAt(i)) {
-					temp.append("1");
-				}
-				else if ('1' == tokens.charAt(i)) {
-					temp.append("01");
-				}
-			}
-			expandString(temp.toString(), levels - 1);
-		}
-	}
 	
 	
-	//the ControlFrame class extends PApplet, so we 
-	//are creating a new processing applet inside a
-	//new frame with a controlP5 object loaded
+	// the ControlFrame class extends PApplet, so we 
+	// are creating a new processing applet inside a
+	// new frame with a controlP5 object loaded
+	// this breaks in Processing 3
 	public class ControlFrame extends PApplet {
 		ControlP5 cp5;
 		CheckBox checkbox;
