@@ -1,3 +1,6 @@
+REPORT NOTES
+------------
+
 Grid system that includes the panels and their constraints. 
   This turnes out to be a division by 144, a Fibonacci number. 
   The total width of the wall is 1536 in. 1536/144 = 5.3 in vertical divisions.
@@ -21,12 +24,16 @@ Other aesthetic considerations
   	"sky" and "land" divisions
   	low horizontals bridging portal
   gradients in Lab color space, not linear
-
+  Horizontal division
+  	related to spatial illusions 
+  	where do we place a "horizon"? 
+  	at average eye level? variable heights around eye level?
 
 CODE NOTES
 ----------
 
-
+makeInnerShapes
+General problem: in Processing, draw only when necessary, instead of constantly looping
 
 
 

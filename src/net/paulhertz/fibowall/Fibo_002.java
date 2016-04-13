@@ -12,6 +12,7 @@ import net.paulhertz.aifile.*;
 import net.paulhertz.geom.Matrix3;
 import net.paulhertz.util.*;
 
+
 /**
  * @author paulhz
  * Class to design wall for NSF building, derived from Fibo_001.java
@@ -21,20 +22,38 @@ import net.paulhertz.util.*;
  */
 public class Fibo_002 extends PApplet {
 	static enum NodeType {zero, one};
-	public ArrayList<TaggedRectangle> blockList; 
-	int[] oneColors;
-	int[] zeroColors;
-	ArrayList<Integer> allColors;
-	RandUtil rando;
-	ArrayList<Integer> chx;
 	public static final float GOLDEN = (float)((Math.sqrt(5) - 1)/2.0 + 1);
 	public static final float INVGOLDEN = GOLDEN - 1;
 	public static final float ROOTTWO = (float)(Math.sqrt(2.0));
 	public static final float INVROOTTWO = (float)(1/Math.sqrt(2.0));
+	//sum a them Fibonacci numbers
+	public static int[] FIB = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 
+							  2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 
+							  317811, 514229, 832040, 1346269 };
+
+	/** array of rectangles for the wall */
+	public ArrayList<TaggedRectangle> blockList; 
+	/** colors for shapes tagged with "1" */
+	int[] oneColors;
+	/** colors for shapes tagged with "0" */
+	int[] zeroColors;
+	/** colors for Illustrator palette */
+	ArrayList<Integer> allColors;
+	/** number triplets to generate the colors from fibotree142.ai */
+	int[] p142 = { 21, 34, 55,   144, 152, 233,   29, 47, 76,   178, 199, 246,   
+      110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
+	/** another set of number triplets for generating colors */
+	int[] pLight = { 199, 233, 220,   34, 144, 233,   76, 123, 199,   178, 199, 246,   
+      110, 178, 152,   233, 220, 246, 	 123, 131, 144,   36, 94, 152 };
+	/** an instance of net.paulhertz.util.RandUtil, for random operations */
+	RandUtil rando;
 	boolean animate = false;
-	// control interface
+	/** ControlP5 control interface */
 	private ControlP5 controlP5;
+	/** frame for the controls, breaks in Processing 3 */
 	public ControlFrame cf;
+	/** tracking of layer visibility, checkboxes */
+	ArrayList<Integer> chx;
 	
 	/** reference to the graphics and i/o library */
 	IgnoCodeLib igno;
@@ -51,12 +70,13 @@ public class Fibo_002 extends PApplet {
 	/** variable for number of panels */
 	int panelCount = 16;
 
-	/** number formats */
+	// number formats
 	DecimalFormat fourPlaces;
 	DecimalFormat twoPlaces;
 	DecimalFormat noPlaces;
 	DecimalFormat fourFrontPlaces;
-
+	
+	// file tracking
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree";
 	String basename = "fibo_";
 	int fileCount = 0;
@@ -161,12 +181,15 @@ public class Fibo_002 extends PApplet {
 			// generate a new instance of subdivided rectangle geometry
 			revYourEngines(true);
 		}
+		/**
+		// TODO code no longer functional if ever. Remove on next revision.
 		int lev = 0;
 		for (lev = 0; lev < chx.size(); lev++) {
-			if (chx.get(lev) == 0) break;
+			if (0 == chx.get(lev)) break;
 		}
+		*/
 		for (TaggedRectangle tr : blockList) {
-			if (chx.get(tr.level) == 0) {
+			if (0 == chx.get(tr.level)) {
 				tr.block.draw();
 			}
 		}
@@ -207,6 +230,7 @@ public class Fibo_002 extends PApplet {
 			}
 		}
 		else if (key == 'x' || key == 'X'){
+			// shuffle the colors but don't change the geometry
 			rando.shuffle(zeroColors);
 			rando.shuffle(oneColors);
 			// println("shuffled colors");
@@ -227,8 +251,13 @@ public class Fibo_002 extends PApplet {
 		}		
 	}
 	
+	
+	/**
+	 * Primary method for generating geometry and colors.
+	 * @param useNewColors   if TRUE, initialize a new set of colors 
+	 */
 	public void revYourEngines(boolean useNewColors) {
-		if (useNewColors) initWallColors();
+		if (useNewColors) initWallColors(p142);
 		blockList = new ArrayList<TaggedRectangle>();
 		// the long rectangle, 10 panel widths
 		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width - 6 * panelWidth, height, NodeType.zero, depth);
@@ -241,16 +270,13 @@ public class Fibo_002 extends PApplet {
 	}
 	
 	
-	int[] p142 = { 21, 34, 55,   144, 152, 233,   29, 47, 76,   178, 199, 246,   
-			           110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
 	/**
 	 * Use the palette from the NSF example fibotree142
 	 */
-	public void initWallColors() {
+	public void initWallColors(int[] numbers) {
 		allColors = new ArrayList<Integer>();
 		oneColors = new int[24];
 		zeroColors = new int[24];
-		int[] numbers = p142;
 		// we create a color and its permutations, then colors assign alternately to oneColor or zeroColor
 		int n = 0;
 		for (int j = 0; j < 4; j++) {
@@ -274,6 +300,11 @@ public class Fibo_002 extends PApplet {
 	}
 
 
+	/**
+	 * @author paulhz
+	 * Storage class for rectangles marked with tag and level fields, with color field and visible flag.
+	 *
+	 */
 	public class TaggedRectangle {
 		NodeType tag;
 		int color;
@@ -298,6 +329,11 @@ public class Fibo_002 extends PApplet {
 	}
 
 
+	// TODO this is the critical method for creating geometry, read it, clean it, and fix it.
+	/**
+	 * Recursively splits TaggedRectangles into new TaggedRectangles.
+	 * @param seed   a TaggedRectangle to be split into new TaggedRectangles.
+	 */
 	public void buildRectangles(TaggedRectangle seed) {
 		// println("level " + seed.level);
 		float gg = gap;
@@ -508,6 +544,9 @@ public class Fibo_002 extends PApplet {
 		return br;
 	}
 
+	
+	// TODO Node class is not currently in use, remove on next revision
+	// apparently it was intended for linked lists or trees
 	class Node extends java.lang.Object {
 		public Node left;
 		public Node right;
@@ -601,9 +640,8 @@ public class Fibo_002 extends PApplet {
 	} // end Node class
 	
 	StringBuffer sb = new StringBuffer(1024);
-	String downhook = "&#x1602;";
-	String uphook = "&#x1603;";
 	
+	// TODO we're expanding the L-system string in code, we could use the UniBlox class
 	public void expandString(String tokens, int levels) {
 		while (levels > 0) {
 			sb.append(tokens);

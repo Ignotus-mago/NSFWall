@@ -18,6 +18,7 @@ public class FiboTreeGrid extends PApplet {
 	String outString = "";
 	StringBuffer gridBuf;
 	int depth = 5;
+	int exDepth = 8;
 	public ArrayList<BezShape> shapes;
 	public ArrayList<BezShape> grid;
 	IgnoCodeLib igno;
@@ -64,6 +65,7 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
 		depth = 7;
+		exDepth = 7;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -289,7 +291,6 @@ public class FiboTreeGrid extends PApplet {
 		w = ((float) width)/(FIB[depth + 1]);   // same as stepX in expandString
 		float bigW = w * GOLDEN;
 		float littleW = w * INVGOLDEN;
-		int exDepth = 6;
 		for (int i = 0; i < buf.length(); i++) {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
@@ -412,24 +413,39 @@ public class FiboTreeGrid extends PApplet {
 		doc.setHeight(height);
 		/* doc.setVerbose(true); */
 		AIFileWriter.setUseTransparency(true);
+		int layerIndex = 1;
+		addCompsLayer(doc, "Shapes", layerIndex++, comps);
+		addPanelLayer(doc, "Panel", layerIndex++);
+		addGridLayer(doc, "Grid", layerIndex++);
+		doc.write(output);
+	}
+	
+	
+	public void addCompsLayer(DocumentComponent doc, String layerName, int layerIndex, ArrayList<BezShape> comps) {
 		// comps.add(0, bgRect());
 		println("adding components...");
 		// create a layer for the shapes
-		LayerComponent comp = new LayerComponent(this, "Shapes", 1);
+		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
 		doc.add(comp);
 		for (BezShape b : comps) {
 			comp.add(b);
 		}
+	}
+	
+	public void addGridLayer(DocumentComponent doc, String layerName, int layerIndex) {
 		// add the grid layer
-		comp = new LayerComponent(this, "Grid", 2);
+		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
 		doc.add(comp);
 		for (BezShape b : grid) {
 			comp.add(b);
 		}
+	}
+	
+	public void addPanelLayer(DocumentComponent doc, String layerName, int layerIndex) {
 		// create some panel guides (finish making them into guides in Illustrator)
 		int panelCount = 16;
 		int panelWidth = width/panelCount;
-		comp = new LayerComponent(this, "Panels", 3);
+		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
 		comp.hide();
 		doc.add(comp);
 		noFill();
@@ -444,7 +460,6 @@ public class FiboTreeGrid extends PApplet {
 		noStroke();
 		BezRectangle bzrect = BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height);
 		comp.add(bzrect);
-		doc.write(output);
 	}
 
 	
