@@ -52,25 +52,19 @@ public class FiboTreeGrid extends PApplet {
 		// scaled size for NSF lobby, 1 foot = 24 pixels
 		size(1536, 276);
 		smooth();
-		noLoop();
+		// noLoop();
 		igno = new IgnoCodeLib(this);
 		rando = new RandUtil();
 		sb = new StringBuffer(1024);
 		gridBuf = new StringBuffer();
 		shapes = new ArrayList<BezShape>();
 		grid = new ArrayList<BezShape>();
-		initWallColors(pLight);
 		// depth of 17 yields 1597 bands
+		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 8;
-		// prepare to attach the grid lines to the top
-		gridY = height;
-		initLindenmeyer_000();
-		expandString(seedString, depth);
-		decodeString();
-		loadShapes();
-		println(gridBuf.toString());
+		depth = 6;
+		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
 
@@ -88,15 +82,19 @@ public class FiboTreeGrid extends PApplet {
 		}
 	}
 	
+	
 	public void keyPressed() {
 		if ('s' == key || 'S' == key) {
 			saveAI();
+		}
+		if ('x' == key || 'X' == key) {
+			runSystem();
 		}
 	}
 	
 
 	/**
-	 * Use the palette from the NSF example fibotree142
+	 * Use the palette from the NSF example fibotree142 or other palette.
 	 */
 	public void initWallColors(int[] numbers) {
 		allColors = new ArrayList<Integer>();
@@ -125,12 +123,36 @@ public class FiboTreeGrid extends PApplet {
 	}
 
 	
+	/**
+	 * Generates a string of chars of a specified length. 
+	 * @param padCh   char used for padding
+	 * @param len     length of padding
+	 * @return        a string of padCh chars of length len
+	 */
 	public String pad(char padCh, int len) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < len; i++) {
 			sb.append(padCh);
 		}
 		return sb.toString();
+	}
+	
+	
+	/**
+	 * Entry point for initializing and running the L-system and generating geometry.
+	 */
+	public void runSystem() {
+		initWallColors(pLight);
+		// prepare to attach the grid lines to the top
+		gridY = height;
+		initLindenmeyer_000();
+		// expand string and create grid geometry
+		expandString(seedString, depth);
+		// decode string using bloxx and other criteria
+		decodeString();
+		// create the shapes for the drawing
+		loadShapes();
+		println(gridBuf.toString());
 	}
 	
 
@@ -141,6 +163,30 @@ public class FiboTreeGrid extends PApplet {
 	 */
 	public void expandString(String tokens, int level) {
 		// println("level is "+ level + "\n  "+ tokens);
+		buildGridGeometry(tokens, level);
+		// now do the string expansion
+		StringBuffer temp = new StringBuffer(2 * tokens.length());
+		for (int i = 0; i < tokens.length(); i++) {
+			char ch = tokens.charAt(i);
+			String val = bloxx.get(ch);
+			temp.append(val);
+		}
+		if (level > 0) {
+			expandString(temp.toString(), level - 1);
+		}
+		else {
+			sb.append(tokens);
+			return;
+		}
+	}
+	
+	
+	/**
+	 * Builds a representation of grid determined by a Fibonacci series.
+	 * @param tokens   tokens in L-system used to generate geometry
+	 * @param level    current depth of recursion of in L-system
+	 */
+	public void buildGridGeometry(String tokens, int level) {
 		// construct the string representation of the grid line by line
 		// add the grid geometry as we go
 		int pos = level + 1;
@@ -176,23 +222,12 @@ public class FiboTreeGrid extends PApplet {
 		gridY -= yStep;
 		// add a return to the output string
 		gridBuf.append(RETURN);
-		// now do the expansion in another loop
-		StringBuffer temp = new StringBuffer(2 * tokens.length());
-		for (int i = 0; i < tokens.length(); i++) {
-			char ch = tokens.charAt(i);
-			String val = bloxx.get(ch);
-			temp.append(val);
-		}
-		if (level > 0) {
-			expandString(temp.toString(), level - 1);
-		}
-		else {
-			sb.append(tokens);
-			return;
-		}
 	}
 
 	
+	/**
+	 * Decode L-system string using bloxx.decode and other criteria, including regex replacement.
+	 */
 	public void decodeString() {
 		StringBuffer temp = new StringBuffer(sb.length());
 		for (int i = 0; i < sb.length(); i++) {
@@ -208,10 +243,13 @@ public class FiboTreeGrid extends PApplet {
 		println("---- first pass of loadTables ----");
 		println("-- first pass string length = "+ temp.length());
 		println(temp.toString());
+		// pattern replacement 
+		/*  */
 		Pattern p = Pattern.compile("11");
 		Matcher m = p.matcher(temp.toString());
 		// replace all "11" with "2"
-		outString = m.replaceAll("2");
+		outString = m.replaceAll("2");		 
+		// outString = temp.toString();
 		println("---- second pass of loadTables ----");
 		println("-- string length = "+ outString.length());
 		println(outString);
@@ -234,6 +272,9 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 	
+	/**
+	 * Create the shapes for the drawing by parsing outString.
+	 */
 	public void loadShapes() {
 		float x = 0;
 		float y = 0;	
@@ -242,27 +283,28 @@ public class FiboTreeGrid extends PApplet {
 		w = ((float) width)/(FIB[depth + 1]);   // same as stepX in expandString
 		float bigW = w * GOLDEN;
 		float littleW = w * INVGOLDEN;
+		int exDepth = 6;
 		for (int i = 0; i < buf.length(); i++) {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
 				noStroke();
 				fill(246, 199, 178, 255);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("0", 3, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				shapes.addAll( makeInnerShapes("0", exDepth, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
 				fill(178, 199, 246);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("1", 5, w, height, x, 0, zeroColors[8], oneColors[8]) );
+				shapes.addAll( makeInnerShapes("1", exDepth - 1, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
 				fill(144, 152, 233, 255);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeInnerShapes("11", 4, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
+				shapes.addAll( makeInnerShapes("11", exDepth - 1, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
 				x += 2*w;				
 			}
 			else { 
@@ -273,8 +315,20 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 	
+	/**
+	 * Expands geometry within a fixed grid space
+	 * @param tokens     string to expand (0, 1 and 2 will be parsed)
+	 * @param howDeep    depth to expand string
+	 * @param gridW      fixed width of the grid space to fill
+	 * @param gridH      height of the grid space
+	 * @param left       left coordinate of grid space
+	 * @param top        top coordinate of grid space
+	 * @param color0     color to use for "0" tagged geometry
+	 * @param color1     color to use for "1" tagged geometry
+	 * @return           a Collection of BezShapes
+	 */
 	public Collection <? extends BezShape> makeInnerShapes(String tokens, int howDeep, float gridW, float gridH, 
-			                                                     float left, float top, int color0, int color1) {
+			                                                   float left, float top, int color0, int color1) {
 		StringBuffer tbuf =  bloxx.expandString(tokens, howDeep, new StringBuffer(), false);
 		int ct0 = 0; 
 		int ct1 = 0;
@@ -284,7 +338,7 @@ public class FiboTreeGrid extends PApplet {
 			else if ('1' == ch) ct1++;
 			else println("---- Parse error in expandShape var tokens: "+ ch);
 		}
-		println("---- buf = "+ tbuf.toString() +", ct0 = "+ ct0 +", ct1 = "+ ct1);
+		// println("---- buf = "+ tbuf.toString() +", ct0 = "+ ct0 +", ct1 = "+ ct1);
 		float w0 = (gridW) / (ct0 + ct1 * GOLDEN);
 		float w1 = w0 * GOLDEN;
 		ArrayList <BezShape> bz = new ArrayList <BezShape>();
@@ -305,6 +359,9 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 
+	/**
+	 * Initialize an L-system in bloxx. 
+	 */
 	public void initLindenmeyer_000() {
 		bloxx.put('0', "1");
 		bloxx.put('1', "01");		
@@ -322,6 +379,9 @@ public class FiboTreeGrid extends PApplet {
 	}
 	
 	
+	/**
+	 * Save to an Adobe Illustrator file
+	 */
 	public void saveAI() {
 		String filename = filePath +"/"+ basename + getTimestamp() +"_"+ fileCount++ + ".ai";
 		saveAI(filename, shapes, allColors);
