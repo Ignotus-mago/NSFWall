@@ -21,7 +21,12 @@ Other aesthetic considerations
   	"sky" and "land" divisions
   	low horizontals bridging portal
   gradients in Lab color space, not linear
-  	
+
+
+CODE NOTES
+----------
+
+
 
 
 
