@@ -39,7 +39,7 @@ public class FiboTreeGrid extends PApplet {
 	ArrayList<Integer> allColors;
 	int[] p142 = { 21, 34, 55,   144, 152, 233,   29, 47, 76,   178, 199, 246,   
       110, 128, 152,   22, 199, 246, 	 123, 131, 144,   36, 94, 152 };
-	int[] pLight = { 199, 233, 220,   144, 157, 233,   76, 123, 199,   178, 199, 246,   
+	int[] pLight = { 199, 233, 220,   34, 144, 233,   76, 123, 199,   178, 199, 246,   
       110, 178, 152,   233, 220, 246, 	 123, 131, 144,   36, 94, 152 };
 
 
@@ -63,15 +63,17 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 6;
+		depth = 7;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
 
+	
 	public static void main(String args[]) {
 		PApplet.main(new String[] { "--present", "FiboTreeGrid" });
 	}
 
+	
 	public void draw() {
 		background(255);
 		for (BezShape bez: shapes) {
@@ -88,6 +90,10 @@ public class FiboTreeGrid extends PApplet {
 			saveAI();
 		}
 		if ('x' == key || 'X' == key) {
+			sb.setLength(0);
+			gridBuf.setLength(0);
+			shapes.clear();
+			grid.clear();
 			runSystem();
 		}
 	}
@@ -383,7 +389,7 @@ public class FiboTreeGrid extends PApplet {
 	 * Save to an Adobe Illustrator file
 	 */
 	public void saveAI() {
-		String filename = filePath +"/"+ basename + getTimestamp() +"_"+ fileCount++ + ".ai";
+		String filename = filePath +"/"+ basename +"_"+ getTimestamp() +"_"+ fileCount++ + ".ai";
 		saveAI(filename, shapes, allColors);
 	}
 
