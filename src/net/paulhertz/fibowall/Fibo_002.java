@@ -58,9 +58,9 @@ public class Fibo_002 extends PApplet {
 	/** gap between rectangles, which we won't use for the NSF wall */
 	float gap = 0;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int depth = 13;
+	int depth = 11;
 	/** threshold for splitting rectangles: values below 1 favor horizontal, values above 1 favor vertical. */
-	float verticality = 2.0f;
+	float verticality = 4.0f;
 	/** level where we start to do vertical divisions */
 	int startVertical = 9;
 	/** variable for panel width */
@@ -104,6 +104,9 @@ public class Fibo_002 extends PApplet {
 		printHelp();
 		// generate the subdivided rectangle geometry
 		revYourEngines(true);
+		for (int i = 0; i < depth; i++) {
+			println( i +": "+ ((20.0f - (i / (depth * 1.0f)) * 20.0f) / 8.0f ) );
+		}
 	}
 	
 	
@@ -187,7 +190,7 @@ public class Fibo_002 extends PApplet {
 	}
 
 	public void keyPressed() {
-		println("---- main keyPressed = "+ key);
+		// println("---- main keyPressed = "+ key);
 		parseKey(key);
 	}
 	
@@ -250,6 +253,10 @@ public class Fibo_002 extends PApplet {
 	public void revYourEngines(boolean useNewColors) {
 		if (useNewColors) initWallColors(p142);
 		blockList = new ArrayList<TaggedRectangle>();
+		oneRectangleWall();
+	}
+	
+	public void twoRectangleWall() {
 		// the long rectangle, 10 panel widths
 		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width - 6 * panelWidth, height, NodeType.zero, depth);
 		blockList.add(tr);
@@ -260,6 +267,12 @@ public class Fibo_002 extends PApplet {
 		buildRectangles(tr2);
 	}
 	
+	public void oneRectangleWall() {
+		// the entire wall
+		TaggedRectangle tr = new TaggedRectangle(this, 0, 0, width, height, NodeType.zero, depth);
+		blockList.add(tr);
+		buildRectangles(tr);
+	}
 	
 	/**
 	 * Use the palette from the NSF example fibotree142
@@ -320,7 +333,6 @@ public class Fibo_002 extends PApplet {
 	}
 
 
-	// TODO this is the critical method for creating geometry, read it, clean it, and fix it.
 	/**
 	 * Recursively splits TaggedRectangles into new TaggedRectangles.
 	 * @param seedTR   a TaggedRectangle to be split into new TaggedRectangles.
@@ -345,6 +357,11 @@ public class Fibo_002 extends PApplet {
 		}
 	}
 	
+	/**
+	 * Adds a new TaggedRectangle as a "zero" node.
+	 * @param seedTR      parent TaggedRectangle for new node
+	 * @param zeroColor   color for new node
+	 */
 	public void addZeroNode(TaggedRectangle seedTR, int zeroColor) {
 		// we randomly decide to omit a branch at specified levels
 		// TODO make TRs invisible instead of omitting them (?)
@@ -363,7 +380,12 @@ public class Fibo_002 extends PApplet {
 		buildRectangles(tr);
 	}
 	
-	// placeholder for breaking out code from buildRectangles
+	/**
+	 * Adds a two new TaggedRectangles as a "one" node and a "zero" node.
+	 * @param seedTR      parent TaggedRectangle for new node
+	 * @param zeroColor   color for new "zero" node
+	 * @param oneColor    color for new "one" node
+	 */
 	public void addOneNode(TaggedRectangle seedTR, int zeroColor, int oneColor) {
 		// we randomly decide to omit a branch at specified levels, 
 		// see earlier code and Fibo_001.java for some variations
@@ -382,6 +404,8 @@ public class Fibo_002 extends PApplet {
 		float w = seedTR.block.getWidth();
 		float h = seedTR.block.getHeight();
 		// decide whether to split vertically or horizontally
+		// TODO implement verticality lookup table with lerp
+		verticality = ( 4 - (seedTR.level / (depth * 1.0f)) * 4);
 		boolean splitVertical = true;
 		if (w == h) {
 			// if the rectangle is a square, 50-50 percent chance of splitting either way
@@ -438,6 +462,16 @@ public class Fibo_002 extends PApplet {
 			buildRectangles(tr1);
 			buildRectangles(tr2);
 		}
+	}
+	
+	// we'd like to use a value from 0..1 to obtain an interpolated value over an entire array
+	public float arrayLerp(float[] arr, float pos) {
+		if (pos >= arr.length) return arr[arr.length - 1];
+		if (pos <= 0) return arr[0];
+		int i = (int) Math.floor(pos);
+		int k = (int) Math.ceil(pos);
+		float d = pos - i;
+		return 0;		
 	}
 
 	
@@ -532,7 +566,6 @@ public class Fibo_002 extends PApplet {
 			size(w, h);
 			frameRate(25);			
 			cp5 = new ControlP5(this);
-			
 			checkbox = cp5.addCheckBox("levels", 10, 10);
 			// make adjustments to the layout of a checkbox.
 			checkbox.setColorForeground(color(120));
@@ -560,7 +593,7 @@ public class Fibo_002 extends PApplet {
 		}
 		
 		public void controlEvent(ControlEvent evt) {
-			println("event " + evt);
+			// println("event " + evt);
 			if (evt.isGroup()) {
 				/* print("got an event from "+evt.group().name()+"\t"); */
 				// checkbox uses arrayValue to store the state of 
@@ -580,7 +613,7 @@ public class Fibo_002 extends PApplet {
 		 * @see processing.core.PApplet#keyPressed()
 		 */
 		public void keyPressed() {
-			println("---- panel keyPressed = "+ key);
+			// println("---- panel keyPressed = "+ key);
 			parseKey(key);
 		}	
 

@@ -37,7 +37,7 @@ General problem: in Processing, draw only when necessary, instead of constantly 
 probability lookup table, one technique for biased probability is to select numbers from an array
   over an interval
   sorted array
-
+Each large scale rectangular element in the over all pattern ("fibotree") has its own instance of a FiboTreeBuilder, a class that provides the functionality of Fibo_001.java and its variants. The FiboTreeBuilder has a FiboTreeGrid instance to handle where it places divisions. It also implements a function to change the verticality variable and the "pruning" (stochastic return) over each level.
 
 
 
