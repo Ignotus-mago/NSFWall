@@ -17,10 +17,12 @@ public class FiboTreeGrid extends PApplet {
 	String seedString = "";
 	String outString = "";
 	StringBuffer gridBuf;
-	int depth = 5;
-	int exDepth = 8;
+	int depth;
+	int inDepth1;
+	int inDepth2;
 	public ArrayList<BezShape> shapes;
 	public ArrayList<BezShape> grid;
+	public ArrayList<BezShape> panels;
 	IgnoCodeLib igno;
 	float tw = 1;
 	float gridX = 0;
@@ -60,12 +62,14 @@ public class FiboTreeGrid extends PApplet {
 		gridBuf = new StringBuffer();
 		shapes = new ArrayList<BezShape>();
 		grid = new ArrayList<BezShape>();
+		panels = panelOverlay();
 		// depth of 17 yields 1597 bands
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 7;
-		exDepth = 7;
+		depth = 5;
+		inDepth1 = 7;
+		inDepth2 = 4;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -82,6 +86,9 @@ public class FiboTreeGrid extends PApplet {
 			bez.draw();
 		}
 		for (BezShape bez: grid) {
+			bez.draw();
+		}
+		for (BezShape bez: panels) {
 			bez.draw();
 		}
 	}
@@ -190,6 +197,30 @@ public class FiboTreeGrid extends PApplet {
 	
 	
 	/**
+	 * @return   an array of BezShapes for the panel and portal overlay
+	 */
+	public ArrayList <BezShape> panelOverlay() {
+		int panelCount = 16;
+		int panelWidth = width/panelCount;
+		ArrayList <BezShape> bez = new ArrayList <BezShape>();
+		// portal
+		fill(192, 192, 192, 192);
+		noStroke();
+		bez.add(BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height));
+		noFill();
+		stroke(255);
+		strokeWeight(1);
+		bez.add(BezLine.makeCoordinates(10 * panelWidth, 0, 13 * panelWidth, height));
+		bez.add(BezLine.makeCoordinates(10 * panelWidth, height, 13 * panelWidth, 0));
+		// panels
+		for (int i = 1; i < panelCount; i++) {
+			bez.add(BezLine.makeCoordinates(i * panelWidth, 0, i * panelWidth, height));
+		}
+		return bez;
+	}
+	
+
+	/**
 	 * Builds a representation of grid determined by a Fibonacci series.
 	 * @param tokens   tokens in L-system used to generate geometry
 	 * @param level    current depth of recursion of in L-system
@@ -234,53 +265,6 @@ public class FiboTreeGrid extends PApplet {
 
 	
 	/**
-	 * Decode L-system string using bloxx.decode and other criteria, including regex replacement.
-	 */
-	public void decodeString() {
-		StringBuffer temp = new StringBuffer(sb.length());
-		for (int i = 0; i < sb.length(); i++) {
-			char ch = sb.charAt(i);
-			String val = bloxx.decode(ch);
-			if (null != val) {
-				temp.append(val);
-			}
-			else {
-				temp.append(ch);
-			}
-		}
-		println("---- first pass of loadTables ----");
-		println("-- first pass string length = "+ temp.length());
-		println(temp.toString());
-		// pattern replacement 
-		/*  */
-		Pattern p = Pattern.compile("11");
-		Matcher m = p.matcher(temp.toString());
-		// replace all "11" with "2"
-		outString = m.replaceAll("2");		 
-		// outString = temp.toString();
-		println("---- second pass of loadTables ----");
-		println("-- string length = "+ outString.length());
-		println(outString);
-		temp.setLength(0);
-		temp.append(outString);
-		// count how many of each number we have 
-		int zeroCount = 0, oneCount = 0, twoCount = 0;
-		for (int i = 0; i < temp.length(); i++) {
-			char ch = temp.charAt(i);
-			if ('0' == ch) zeroCount++;
-			else if ('1' == ch) oneCount++;
-			else if ('2' == ch) twoCount++;
-			else println("error: ch = "+ ch);
-		}
-		float total = zeroCount * INVGOLDEN + oneCount + twoCount * GOLDEN;
-		println("---- third pass of loadTables ----");
-		println("zeroCount = "+ zeroCount +", oneCount = "+ oneCount +", twoCount = "+ twoCount);
-		println("-- total = "+ total);
-		tw = total;
-	}
-	
-	
-	/**
 	 * Create the shapes for the drawing by parsing outString.
 	 */
 	public void loadShapes() {
@@ -295,23 +279,23 @@ public class FiboTreeGrid extends PApplet {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
 				noStroke();
-				fill(246, 199, 178, 255);
+				fill(246, 199, 178);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("0", exDepth, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				shapes.addAll( makeInnerShapes("0", inDepth1, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
 				fill(178, 199, 246);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("1", exDepth - 1, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				shapes.addAll( makeInnerShapes("1", inDepth1 - 1, w, height, x, 0, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
 				fill(144, 152, 233, 255);
 				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeInnerShapes("11", exDepth - 1, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
+				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
 				x += 2*w;				
 			}
 			else { 
@@ -367,6 +351,53 @@ public class FiboTreeGrid extends PApplet {
 	
 
 	/**
+	 * Decode L-system string using bloxx.decode and other criteria, including regex replacement.
+	 */
+	public void decodeString() {
+		StringBuffer temp = new StringBuffer(sb.length());
+		for (int i = 0; i < sb.length(); i++) {
+			char ch = sb.charAt(i);
+			String val = bloxx.decode(ch);
+			if (null != val) {
+				temp.append(val);
+			}
+			else {
+				temp.append(ch);
+			}
+		}
+		println("---- first pass of loadTables ----");
+		println("-- first pass string length = "+ temp.length());
+		println(temp.toString());
+		// pattern replacement 
+		/*  */
+		Pattern p = Pattern.compile("11");
+		Matcher m = p.matcher(temp.toString());
+		// replace all "11" with "2"
+		outString = m.replaceAll("2");		 
+		// outString = temp.toString();
+		println("---- second pass of loadTables ----");
+		println("-- string length = "+ outString.length());
+		println(outString);
+		temp.setLength(0);
+		temp.append(outString);
+		// count how many of each number we have 
+		int zeroCount = 0, oneCount = 0, twoCount = 0;
+		for (int i = 0; i < temp.length(); i++) {
+			char ch = temp.charAt(i);
+			if ('0' == ch) zeroCount++;
+			else if ('1' == ch) oneCount++;
+			else if ('2' == ch) twoCount++;
+			else println("error: ch = "+ ch);
+		}
+		float total = zeroCount * INVGOLDEN + oneCount + twoCount * GOLDEN;
+		println("---- third pass of loadTables ----");
+		println("zeroCount = "+ zeroCount +", oneCount = "+ oneCount +", twoCount = "+ twoCount);
+		println("-- total = "+ total);
+		tw = total;
+	}
+	
+	
+	/**
 	 * Initialize an L-system in bloxx. 
 	 */
 	public void initLindenmeyer_000() {
@@ -394,6 +425,7 @@ public class FiboTreeGrid extends PApplet {
 		saveAI(filename, shapes, allColors);
 	}
 
+	
 	/**
 	 * Saves shapes to an Adobe Illustrator file, called by saveAI().
 	 * @param aiFilename
@@ -414,52 +446,20 @@ public class FiboTreeGrid extends PApplet {
 		/* doc.setVerbose(true); */
 		AIFileWriter.setUseTransparency(true);
 		int layerIndex = 1;
-		addCompsLayer(doc, "Shapes", layerIndex++, comps);
-		addPanelLayer(doc, "Panel", layerIndex++);
-		addGridLayer(doc, "Grid", layerIndex++);
+		doc.add(makeLayerWithComps("Shapes", layerIndex++, true, false, comps));
+		doc.add(makeLayerWithComps("Panels", layerIndex++, true, false, panels));
+		doc.add(makeLayerWithComps("Grid", layerIndex++, true, false, grid));
 		doc.write(output);
 	}
 	
 	
-	public void addCompsLayer(DocumentComponent doc, String layerName, int layerIndex, ArrayList<BezShape> comps) {
-		// comps.add(0, bgRect());
-		println("adding components...");
-		// create a layer for the shapes
-		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
-		doc.add(comp);
-		for (BezShape b : comps) {
-			comp.add(b);
-		}
-	}
-	
-	public void addGridLayer(DocumentComponent doc, String layerName, int layerIndex) {
-		// add the grid layer
-		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
-		doc.add(comp);
-		for (BezShape b : grid) {
-			comp.add(b);
-		}
-	}
-	
-	public void addPanelLayer(DocumentComponent doc, String layerName, int layerIndex) {
-		// create some panel guides (finish making them into guides in Illustrator)
-		int panelCount = 16;
-		int panelWidth = width/panelCount;
-		LayerComponent comp = new LayerComponent(this, layerName, layerIndex);
-		comp.hide();
-		doc.add(comp);
-		noFill();
-		stroke(127);
-		strokeWeight(1);
-		for (int i = 1; i < panelCount; i++) {
-			BezLine bzline = BezLine.makeCoordinates(i * panelWidth, 0, i * panelWidth, height);
-			comp.add(bzline);
-		}
-		// add the portal
-		fill(192,192,192,192);
-		noStroke();
-		BezRectangle bzrect = BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height);
-		comp.add(bzrect);
+	public LayerComponent makeLayerWithComps(String layerName, int layerIndex, boolean isVisible, boolean isLocked, 
+      ArrayList <? extends DisplayComponent> comps) {
+		LayerComponent layer = new LayerComponent(this, layerName, layerIndex);
+		layer.setVisible(isVisible);
+		layer.setLocked(isLocked);
+		layer.add(comps);
+		return layer;
 	}
 
 	
