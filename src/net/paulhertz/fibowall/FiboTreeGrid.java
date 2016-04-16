@@ -67,9 +67,9 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 5;
-		inDepth1 = 7;
-		inDepth2 = 4;
+		depth = 11;
+		inDepth1 = 5;
+		inDepth2 = 5;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -280,22 +280,22 @@ public class FiboTreeGrid extends PApplet {
 			if ('0' == ch) {
 				noStroke();
 				fill(246, 199, 178);
-				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("0", inDepth1, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
+				shapes.addAll( makeInnerShapes("0", inDepth1, x, 0, w, height, zeroColors[2], oneColors[2]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
 				fill(178, 199, 246);
-				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("1", inDepth1 - 1, w, height, x, 0, zeroColors[2], oneColors[2]) );
+				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
+				shapes.addAll( makeInnerShapes("1", inDepth1 - 1, x, 0, w, height, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
 				fill(144, 152, 233, 255);
-				// shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, 2 * w, height, x, 0, zeroColors[14], oneColors[14]) );
+				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
+				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, x, 0, 2 * w, height, zeroColors[14], oneColors[14]) );
 				x += 2*w;				
 			}
 			else { 
@@ -318,8 +318,53 @@ public class FiboTreeGrid extends PApplet {
 	 * @param color1     color to use for "1" tagged geometry
 	 * @return           a Collection of BezShapes
 	 */
-	public Collection <? extends BezShape> makeInnerShapes(String tokens, int howDeep, float gridW, float gridH, 
-			                                                   float left, float top, int color0, int color1) {
+	public Collection <? extends BezShape> makeInnerShapes(String tokens, int howDeep, float left, float top, 
+			                                                   float gridW, float gridH, int color0, int color1) {
+		StringBuffer tbuf =  bloxx.expandString(tokens, howDeep, new StringBuffer(), false);
+		int ct0 = 0; 
+		int ct1 = 0;
+		for (int i = 0; i < tbuf.length(); i++) {
+			char ch = tbuf.charAt(i);
+			if ('0' == ch) ct0++;
+			else if ('1' == ch) ct1++;
+			else println("---- Parse error in expandShape var tokens: "+ ch);
+		}
+		// println("---- buf = "+ tbuf.toString() +", ct0 = "+ ct0 +", ct1 = "+ ct1);
+		float w0 = (gridW) / (ct0 + ct1 * GOLDEN);
+		float w1 = w0 * GOLDEN;
+		ArrayList <BezShape> bz = new ArrayList <BezShape>();
+		for (int i = 0; i < tbuf.length(); i++) {
+			char ch = tbuf.charAt(i);
+			if ('0' == ch) {
+				fill(color0);
+				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH));
+				bz.addAll( ( makeInmostShapes("0", inDepth2, left, 0, w0, height, zeroColors[7], oneColors[7]) ) );
+				left += w0;
+			}
+			else if ('1' == ch) {
+				fill(color1);
+				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH));
+				bz.addAll( ( makeInmostShapes("1", inDepth2 - 1, left, 0, w1, height, zeroColors[8], oneColors[8]) ) );
+				left += w1;
+			}
+		}
+		return bz;
+	}
+	
+	/**
+	 * Expands geometry within a fixed grid space
+	 * @param tokens     string to expand (0, 1 and 2 will be parsed)
+	 * @param howDeep    depth to expand string
+	 * @param gridW      fixed width of the grid space to fill
+	 * @param gridH      height of the grid space
+	 * @param left       left coordinate of grid space
+	 * @param top        top coordinate of grid space
+	 * @param color0     color to use for "0" tagged geometry
+	 * @param color1     color to use for "1" tagged geometry
+	 * @return           a Collection of BezShapes
+	 */
+	public Collection <? extends BezShape> makeInmostShapes(String tokens, int howDeep, float left, float top, 
+                                                          float gridW, float gridH, int color0, int color1) {
 		StringBuffer tbuf =  bloxx.expandString(tokens, howDeep, new StringBuffer(), false);
 		int ct0 = 0; 
 		int ct1 = 0;
@@ -348,6 +393,7 @@ public class FiboTreeGrid extends PApplet {
 		}
 		return bz;
 	}
+	
 	
 
 	/**
