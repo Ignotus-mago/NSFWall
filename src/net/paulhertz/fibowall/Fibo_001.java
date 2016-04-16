@@ -228,6 +228,7 @@ public class Fibo_001 extends PApplet {
 	}
 	
 	public void revYourEngines(boolean useNewColors) {
+		noLoop();
 		// if (useNewColors) initColors();
 		if (useNewColors) initWallColors();
 		blockList = new ArrayList<TaggedRectangle>();
@@ -239,6 +240,7 @@ public class Fibo_001 extends PApplet {
 		TaggedRectangle tr2 = new TaggedRectangle(this, 13 * panelWidth, 0, 3 * panelWidth, height, NodeType.zero, levels);
 		blockList.add(tr2);
 		buildRectangles(tr2);
+		loop();
 		/*
 		// another way to do things, with multiple starting blocks
 		int dim1 = 233;

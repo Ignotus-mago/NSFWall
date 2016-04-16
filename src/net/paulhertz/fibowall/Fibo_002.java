@@ -63,6 +63,14 @@ public class Fibo_002 extends PApplet {
 	float verticality = 4.0f;
 	/** level where we start to do vertical divisions */
 	int startVertical = 9;
+	/** interpolation array for calculating probability of a vertical or horizontal break
+	 *  values < 1 bias to horizontal, values > 1 bias to vertical
+	 *  verticality = arrayLerp(vertArray, (depth - seedTR.level)/((float) depth));
+	 *  where finer divisions have smaller level values.
+	 */
+	float[] vertArray = {1, 0.75f, 0.5f, 0.75f, 0, 6, 12f, 24f };
+	/** interpolation array with break probabilities */
+	float[] breakArray = {0, 0.01f, 0.02f, 0.25f, 0};
 	/** variable for panel width */
 	int panelWidth;
 	/** variable for number of panels */
@@ -104,7 +112,7 @@ public class Fibo_002 extends PApplet {
 		printHelp();
 		// generate the subdivided rectangle geometry
 		revYourEngines(true);
-//		testArrayLerp();
+		// testArrayLerp();
 	}
 	
 	
@@ -249,9 +257,11 @@ public class Fibo_002 extends PApplet {
 	 * @param useNewColors   if TRUE, initialize a new set of colors 
 	 */
 	public void revYourEngines(boolean useNewColors) {
+		noLoop();
 		if (useNewColors) initWallColors(p142);
 		blockList = new ArrayList<TaggedRectangle>();
 		oneRectangleWall();
+		loop();
 	}
 	
 	public void twoRectangleWall() {
@@ -363,10 +373,15 @@ public class Fibo_002 extends PApplet {
 	public void addZeroNode(TaggedRectangle seedTR, int zeroColor) {
 		// we randomly decide to omit a branch at specified levels
 		// TODO make TRs invisible instead of omitting them (?)
-		if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
-			// println("stochastic return at level " + seed.level);
+		
+		float normLevel = (depth - seedTR.level)/((float) depth);
+		float breakProb = arrayLerp(breakArray, normLevel);
+		float rand = rando.randGenerator().nextFloat();
+		if (rand < breakProb ) {
+			println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
 			return;
 		}
+		
 		// on the zero branches, the TR does not split but we copy its rectangle to a new TR
 		// if gap > 0 the new rectangle is inset by gap
 		BezRectangle insetR = seedTR.block.inset(gap, gap);
@@ -388,8 +403,11 @@ public class Fibo_002 extends PApplet {
 		// we randomly decide to omit a branch at specified levels, 
 		// see earlier code and Fibo_001.java for some variations
 		// TODO make TRs invisible instead of omitting them (?)
-		if (seedTR.level < 8 && rando.randomInRange(0, 21) > 18 ) {
-			// println("stochastic return at level - " + seed.level);
+		float normLevel = (depth + 1 - seedTR.level)/((float) depth);
+		float breakProb = arrayLerp(breakArray, normLevel);
+		float rand = rando.randGenerator().nextFloat();
+		if (rand < breakProb ) {
+			println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
 			return;
 		}
 		// on the one branches, the rectangle splits in two horizontally or vertically
@@ -402,7 +420,7 @@ public class Fibo_002 extends PApplet {
 		float w = seedTR.block.getWidth();
 		float h = seedTR.block.getHeight();
 		// decide whether to split vertically or horizontally
-		// TODO implement verticality lookup table with lerp
+		// DONE implemented verticality lookup table with lerp
 		verticality = arrayLerp(vertArray, (depth - seedTR.level)/((float) depth));
 		// println("---- verticality = "+ verticality);
 		boolean splitVertical = true;
@@ -463,7 +481,6 @@ public class Fibo_002 extends PApplet {
 		}
 	}
 	
-	float[] vertArray = {0, 0.25f, 0.5f, 0.75f, 1, 6, 12, 24 };
 	// we'd like to use a value from 0..1 to obtain an interpolated value over an entire array
 	public float arrayLerp(float[] arr, float pos) {
 		if (pos >= 1) return arr[arr.length - 1];
