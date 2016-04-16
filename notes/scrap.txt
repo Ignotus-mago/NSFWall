@@ -29,6 +29,7 @@ Other aesthetic considerations
   	where do we place a "horizon"? 
   	at average eye level? variable heights around eye level?
 
+
 CODE NOTES
 ----------
 
@@ -37,7 +38,23 @@ General problem: in Processing, draw only when necessary, instead of constantly 
 probability lookup table, one technique for biased probability is to select numbers from an array
   over an interval
   sorted array
+
 Each large scale rectangular element in the over all pattern ("fibotree") has its own instance of a FiboTreeBuilder, a class that provides the functionality of Fibo_001.java and its variants. The FiboTreeBuilder has a FiboTreeGrid instance to handle where it places divisions. It also implements a function to change the verticality variable and the "pruning" (stochastic return) over each level.
+
+Some tools to consider
+  A class that assigns a fill color to geometry (rectangles, to begin with) based on a bitmap, i.e. using the average color in the region covered by the geomety.
+  Fitting divisions to the FiboTreeGrid pattern, especially when depth = 11 (144 divisions)
+  Fitting a grid within a block--i.e., filling a rectangle with a line pattern.
+  Grouping patterns
+  Regulating the probability of "pruning" per level.
+
+FIXED!: Fix ConcurrentModificationException in Fibo_001, Fibo_002. Seems to come from keypress processing triggering a rewriting of the blocklist while drawing is going on. Put a noLoop, loop around the call that triggers.
+
+** Turn Fibo_002 and FiboTreeGrid into classes called by a PApplet.
+
+
+
+
 
 
 
