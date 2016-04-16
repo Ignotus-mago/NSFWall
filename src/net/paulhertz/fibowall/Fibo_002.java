@@ -58,7 +58,7 @@ public class Fibo_002 extends PApplet {
 	/** gap between rectangles, which we won't use for the NSF wall */
 	float gap = 0;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int depth = 11;
+	int depth = 17;
 	/** threshold for splitting rectangles: values below 1 favor horizontal, values above 1 favor vertical. */
 	float verticality = 4.0f;
 	/** level where we start to do vertical divisions */
@@ -104,9 +104,7 @@ public class Fibo_002 extends PApplet {
 		printHelp();
 		// generate the subdivided rectangle geometry
 		revYourEngines(true);
-		for (int i = 0; i < depth; i++) {
-			println( i +": "+ ((20.0f - (i / (depth * 1.0f)) * 20.0f) / 8.0f ) );
-		}
+//		testArrayLerp();
 	}
 	
 	
@@ -405,7 +403,8 @@ public class Fibo_002 extends PApplet {
 		float h = seedTR.block.getHeight();
 		// decide whether to split vertically or horizontally
 		// TODO implement verticality lookup table with lerp
-		verticality = ( 4 - (seedTR.level / (depth * 1.0f)) * 4);
+		verticality = arrayLerp(vertArray, (depth - seedTR.level)/((float) depth));
+		// println("---- verticality = "+ verticality);
 		boolean splitVertical = true;
 		if (w == h) {
 			// if the rectangle is a square, 50-50 percent chance of splitting either way
@@ -464,14 +463,26 @@ public class Fibo_002 extends PApplet {
 		}
 	}
 	
+	float[] vertArray = {0, 0.25f, 0.5f, 0.75f, 1, 6, 12, 24 };
 	// we'd like to use a value from 0..1 to obtain an interpolated value over an entire array
 	public float arrayLerp(float[] arr, float pos) {
-		if (pos >= arr.length) return arr[arr.length - 1];
+		if (pos >= 1) return arr[arr.length - 1];
 		if (pos <= 0) return arr[0];
+		// scale pos to the largest index of the array
+		pos *= (arr.length - 1);
 		int i = (int) Math.floor(pos);
-		int k = (int) Math.ceil(pos);
-		float d = pos - i;
-		return 0;		
+		float frac = pos - i;
+		float r = arr[i] + frac * (arr[i + 1] - arr[i]);
+		return r;		
+	}
+	
+	public void testArrayLerp() {
+		float kk = 0;
+		float inc = 0.0625f;
+		while (kk <= 1) {
+			println("-- ArrayLerp at "+ kk +" = "+ arrayLerp(vertArray, kk));
+			kk += inc;
+		}
 	}
 
 	
