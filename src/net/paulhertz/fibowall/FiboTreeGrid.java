@@ -20,6 +20,15 @@ public class FiboTreeGrid extends PApplet {
 	public ArrayList<BezShape> shapes;
 	public ArrayList<BezShape> grid;
 	public ArrayList<BezShape> panels;
+	public ArrayList<BezShape> baseShapesColor0;
+	public ArrayList<BezShape> baseShapesColor1;
+	public ArrayList<BezShape> baseShapesColor2;
+	public ArrayList<BezShape> innerShapesColor0;
+	public ArrayList<BezShape> innerShapesColor1;
+	public ArrayList<BezShape> inmostShapesColor0;
+	public ArrayList<BezShape> inmostShapesColor1;
+	public ArrayList<DisplayComponent> shapeLayers;
+	int layerIndex = 1;
 	IgnoCodeLib igno;
 	float tw = 1;
 	float gridX = 0;
@@ -68,16 +77,13 @@ public class FiboTreeGrid extends PApplet {
 		rando = new RandUtil();
 		sb = new StringBuffer(1024);
 		gridBuf = new StringBuffer();
-		shapes = new ArrayList<BezShape>();
-		grid = new ArrayList<BezShape>();
-		panels = panelOverlay();
 		// depth of 17 yields 1597 bands
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 8;
-		inDepth1 = 4;
-		inDepth2 = 5;
+		depth = 11;
+		inDepth1 = 2;
+		inDepth2 = 3;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -90,14 +96,14 @@ public class FiboTreeGrid extends PApplet {
 	
 	public void draw() {
 		background(255);
-		for (BezShape bez: shapes) {
-			bez.draw();
+		for (DisplayComponent comp: shapes) {
+			comp.draw();
 		}
-		for (BezShape bez: grid) {
-			bez.draw();
+		for (DisplayComponent comp: grid) {
+			comp.draw();
 		}
-		for (BezShape bez: panels) {
-			bez.draw();
+		for (DisplayComponent comp: panels) {
+			comp.draw();
 		}
 	}
 	
@@ -168,6 +174,7 @@ public class FiboTreeGrid extends PApplet {
 	 */
 	public void runSystem() {
 		initWallColors(pLight);
+		initLists();
 		// prepare to attach the grid lines to the top
 		gridY = height;
 		initLindenmeyer_000();
@@ -177,10 +184,25 @@ public class FiboTreeGrid extends PApplet {
 		decodeString();
 		// create the shapes for the drawing
 		loadShapes();
+		makeColorLayers();
 		println(gridBuf.toString());
 	}
 	
 
+	public void initLists() {
+		shapes = new ArrayList<BezShape>();
+		grid = new ArrayList<BezShape>();
+		panels = panelOverlay();
+		baseShapesColor0 = new ArrayList<BezShape>();
+		baseShapesColor1 = new ArrayList<BezShape>();
+		baseShapesColor2 = new ArrayList<BezShape>();
+		innerShapesColor0 = new ArrayList<BezShape>();
+		innerShapesColor1 = new ArrayList<BezShape>();
+		inmostShapesColor0 = new ArrayList<BezShape>();
+		inmostShapesColor1 = new ArrayList<BezShape>();
+	}
+
+	
 	/**
 	 * Expands L-system string and constructs grid geometry, recursively.
 	 * @param tokens   the string to expand
@@ -282,30 +304,37 @@ public class FiboTreeGrid extends PApplet {
 		float y = 0;	
 		StringBuffer buf = new StringBuffer(outString);
 		// w = width/tw;
-		w = ((float) width)/(FIB[depth + 1]);   // same as stepX in expandString
+		w = ((float) width)/(FIB[depth + 1]);   // same as stepX in expandString method
 		float bigW = w * GOLDEN;
 		float littleW = w * INVGOLDEN;
+		BezShape tempR = BezRectangle.makeLeftTopRightBottom(0, 0, 1, 1);
 		for (int i = 0; i < buf.length(); i++) {
 			char ch = buf.charAt(i);
 			if ('0' == ch) {
 				noStroke();
-				fill(246, 199, 178);
+				fill(zeroColors[0]);
+				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height);
+				baseShapesColor0.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("0", inDepth1, x, 0, w, height, zeroColors[2], oneColors[2]) );
+				shapes.addAll( makeInnerShapes("0", inDepth1, x, 0, w, height, zeroColors[1], oneColors[1]) );
 				x += w;
 			}
 			else if ('1' == ch) {
 				noStroke();
-				fill(178, 199, 246);
+				fill(oneColors[0]);
+				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height);
+				baseShapesColor1.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
 				shapes.addAll( makeInnerShapes("1", inDepth1 - 1, x, 0, w, height, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
 				noStroke();
-				fill(144, 152, 233, 255);
+				fill(oneColors[oneColors.length - 1]);
+				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height);
+				baseShapesColor2.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, x, 0, 2 * w, height, zeroColors[14], oneColors[14]) );
+				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, x, 0, 2 * w, height, zeroColors[3], oneColors[3]) );
 				x += 2*w;				
 			}
 			else { 
@@ -342,19 +371,24 @@ public class FiboTreeGrid extends PApplet {
 		// println("---- buf = "+ tbuf.toString() +", ct0 = "+ ct0 +", ct1 = "+ ct1);
 		float w0 = (gridW) / (ct0 + ct1 * GOLDEN);
 		float w1 = w0 * GOLDEN;
+		BezShape tempR = BezRectangle.makeLeftTopRightBottom(0, 0, 1, 1);
 		ArrayList <BezShape> bz = new ArrayList <BezShape>();
 		for (int i = 0; i < tbuf.length(); i++) {
 			char ch = tbuf.charAt(i);
 			if ('0' == ch) {
 				fill(color0);
-				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH));
-				bz.addAll( ( makeInmostShapes("0", inDepth2, left, 0, w0, height, zeroColors[7], oneColors[7]) ) );
+				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH);
+				bz.add(tempR);
+				innerShapesColor0.add(tempR);
+				bz.addAll( ( makeInmostShapes("0", inDepth2, left, 0, w0, height, zeroColors[4], oneColors[4]) ) );
 				left += w0;
 			}
 			else if ('1' == ch) {
 				fill(color1);
-				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH));
-				bz.addAll( ( makeInmostShapes("1", inDepth2 - 1, left, 0, w1, height, zeroColors[8], oneColors[8]) ) );
+				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH);
+				innerShapesColor1.add(tempR);
+				bz.add(tempR);
+				bz.addAll( ( makeInmostShapes("1", inDepth2 - 1, left, 0, w1, height, zeroColors[5], oneColors[5]) ) );
 				left += w1;
 			}
 		}
@@ -387,35 +421,71 @@ public class FiboTreeGrid extends PApplet {
 		// println("---- buf = "+ tbuf.toString() +", ct0 = "+ ct0 +", ct1 = "+ ct1);
 		float w0 = (gridW) / (ct0 + ct1 * GOLDEN);
 		float w1 = w0 * GOLDEN;
+		BezShape tempR = BezRectangle.makeLeftTopRightBottom(0, 0, 1, 1);
 		ArrayList <BezShape> bz = new ArrayList <BezShape>();
 		for (int i = 0; i < tbuf.length(); i++) {
 			char ch = tbuf.charAt(i);
 			if ('0' == ch) {
 				fill(color0);
-				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH));
+				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH);
+				inmostShapesColor0.add(tempR);
+				bz.add(tempR);
 				left += w0;
 			}
 			else if ('1' == ch) {
 				fill(color1);
-				bz.add(BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH));
+				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH);
+				inmostShapesColor1.add(tempR);
+				bz.add(tempR);
 				left += w1;
 			}
 		}
 		return bz;
 	}
 	
+	public void makeColorLayers() {
+		shapeLayers = new ArrayList<DisplayComponent>();
+		GroupComponent baseGroup0 = new GroupComponent();
+		baseGroup0.add(baseShapesColor0);
+		GroupComponent baseGroup1 = new GroupComponent();
+		baseGroup1.add(baseShapesColor1);
+		GroupComponent baseGroup2 = new GroupComponent();
+		baseGroup2.add(baseShapesColor2);
+//		GroupComponent innerGroup0 = new GroupComponent();
+//		innerGroup0.add(innerShapesColor0);
+//		GroupComponent innerGroup1 = new GroupComponent();
+//		innerGroup1.add(innerShapesColor1);
+//		GroupComponent inmostGroup0 = new GroupComponent();
+//		inmostGroup0.add(inmostShapesColor0);
+//		GroupComponent inmostGroup1 = new GroupComponent();
+//		inmostGroup1.add(inmostShapesColor1);
+		LayerComponent baseShapeLayer = new LayerComponent("base", layerIndex++);
+		baseShapeLayer.add(baseGroup0);
+		baseShapeLayer.add(baseGroup1);
+		baseShapeLayer.add(baseGroup2);
+		LayerComponent innerShapeLayer = new LayerComponent("inner", layerIndex++);
+		innerShapeLayer.add(groupShapesByColor(innerShapesColor0));
+		innerShapeLayer.add(groupShapesByColor(innerShapesColor1));
+		LayerComponent inmostShapeLayer = new LayerComponent("inmost", layerIndex++);
+		inmostShapeLayer.add(groupShapesByColor(inmostShapesColor0));
+		inmostShapeLayer.add(groupShapesByColor(inmostShapesColor1));
+		shapeLayers.add(baseShapeLayer);
+		shapeLayers.add(innerShapeLayer);
+		shapeLayers.add(inmostShapeLayer);
+	}
 	
-	public ArrayList <DisplayComponent>  groupShapes() {
+	
+	public ArrayList <GroupComponent>  groupShapesByColor(ArrayList<BezShape> bezShapes) {
 		Palette pal = new Palette();
-		for (BezShape bez: shapes) {
+		for (BezShape bez: bezShapes) {
 			pal.addColor(bez.fillColor());
 		}
 		int[] colorSet = pal.getColors();
-		ArrayList <DisplayComponent> shapesGroupedbyColor = new ArrayList <DisplayComponent>(colorSet.length);
+		ArrayList <GroupComponent> shapesGroupedbyColor = new ArrayList <GroupComponent>(colorSet.length);
 		for (int i = 0; i < colorSet.length; i++) {
 			GroupComponent colorGroup = new GroupComponent();
 			int c = colorSet[i];
-			for (BezShape bez: shapes) {
+			for (BezShape bez: bezShapes) {
 				if (c == bez.fillColor()) {
 					colorGroup.add(bez);
 				}
@@ -477,7 +547,12 @@ public class FiboTreeGrid extends PApplet {
 	 */
 	public void initLindenmeyer_000() {
 		bloxx.put('0', "1");
-		bloxx.put('1', "01");		
+		if (0 == depth % 2) {
+			bloxx.put('1', "01");		
+		}
+		else {
+			bloxx.put('1', "10");					
+		}
 		bloxx.encode('0', "0");
 		bloxx.encode('1', "1");
 		seedString = "0";
@@ -520,11 +595,13 @@ public class FiboTreeGrid extends PApplet {
 		doc.setHeight(height);
 		/* doc.setVerbose(true); */
 		AIFileWriter.setUseTransparency(true);
-		int layerIndex = 1;
-		doc.add(makeLayerWithComps("Shapes", layerIndex++, true, false, groupShapes()));
+		for (DisplayComponent comp : shapeLayers) {
+			doc.add(comp);
+		}
+		// doc.add(makeLayerWithComps("Shapes", layerIndex++, true, false, groupShapes(shapes)));
 		doc.add(makeLayerWithComps("Panels", layerIndex++, true, true, panels));
 		doc.add(makeLayerWithComps("Grid", layerIndex++, true, true, grid));
-		StringBuffer sb = new StringBuffer("Generated by FiboTreeGrid, Processing app by Paul Hertz"+ RETURN);
+		StringBuffer sb = new StringBuffer("Generated by FiboTreeGrid, Processing app by Paul Hertz. "+ RETURN);
 		sb.append("Depth = "+ depth +", inDepth1 = "+ inDepth1 +", inDepth2 = "+ inDepth2 + RETURN);
 		doc.add(makeDescriptionText("Notes", layerIndex++, true, true, 0, -50, sb));
 		doc.write(output);
