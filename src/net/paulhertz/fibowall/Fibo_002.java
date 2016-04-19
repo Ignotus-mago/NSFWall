@@ -58,7 +58,7 @@ public class Fibo_002 extends PApplet {
 	/** gap between rectangles, which we won't use for the NSF wall */
 	float gap = 0;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int depth = 17;
+	int depth = 13;
 	/** threshold for splitting rectangles: values below 1 favor horizontal, values above 1 favor vertical. */
 	float verticality = 4.0f;
 	/** level where we start to do vertical divisions */
@@ -260,7 +260,7 @@ public class Fibo_002 extends PApplet {
 		noLoop();
 		if (useNewColors) initWallColors(p142);
 		blockList = new ArrayList<TaggedRectangle>();
-		oneRectangleWall();
+		fiveRectangleWall();
 		loop();
 	}
 	
@@ -282,6 +282,30 @@ public class Fibo_002 extends PApplet {
 		buildRectangles(tr);
 	}
 	
+	
+	public void fiveRectangleWall() {
+		// split into five parts
+		float p21 = 21.0f/144 * 1536;
+		float p34 = 34.0f/144 * 1536;
+		float p89 = (1536 - p34 - p21);
+		TaggedRectangle tr1 = new TaggedRectangle(this, 0, 0, p21, p21, NodeType.zero, depth);
+		blockList.add(tr1);
+		buildRectangles(tr1);
+		TaggedRectangle tr2 = new TaggedRectangle(this, p21, 0, p34, p21, NodeType.zero, depth);
+		blockList.add(tr2);
+		buildRectangles(tr2);
+		TaggedRectangle tr3 = new TaggedRectangle(this, p21 + p34, 0, p89, p21, NodeType.zero, depth);
+		blockList.add(tr3);
+		buildRectangles(tr3);
+		TaggedRectangle tr4 = new TaggedRectangle(this, 0, p21, p89, 276 - p21, NodeType.zero, depth);
+		blockList.add(tr4);
+		buildRectangles(tr4);
+		TaggedRectangle tr5 = new TaggedRectangle(this, p89, p21, 1536 - p89, 276 - p21, NodeType.zero, depth);
+		blockList.add(tr5);
+		buildRectangles(tr5);
+	}
+	
+
 	/**
 	 * Use the palette from the NSF example fibotree142
 	 */
@@ -374,11 +398,11 @@ public class Fibo_002 extends PApplet {
 		// we randomly decide to omit a branch at specified levels
 		// TODO make TRs invisible instead of omitting them (?)
 		
-		float normLevel = (depth - seedTR.level)/((float) depth);
+		float normLevel = (depth + 1 - seedTR.level)/((float) depth);
 		float breakProb = arrayLerp(breakArray, normLevel);
 		float rand = rando.randGenerator().nextFloat();
 		if (rand < breakProb ) {
-			println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
+			// println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
 			return;
 		}
 		
@@ -403,13 +427,15 @@ public class Fibo_002 extends PApplet {
 		// we randomly decide to omit a branch at specified levels, 
 		// see earlier code and Fibo_001.java for some variations
 		// TODO make TRs invisible instead of omitting them (?)
+		
 		float normLevel = (depth + 1 - seedTR.level)/((float) depth);
 		float breakProb = arrayLerp(breakArray, normLevel);
 		float rand = rando.randGenerator().nextFloat();
 		if (rand < breakProb ) {
-			println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
+			// println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
 			return;
 		}
+		
 		// on the one branches, the rectangle splits in two horizontally or vertically
 		// how far over to shift the split, a number in the range 0..1
 		float[] notches = new float[13];
@@ -524,7 +550,7 @@ public class Fibo_002 extends PApplet {
 			LayerComponent comp = new LayerComponent(this, "Layer " + (layer), layer);
 			if (chx.get(i) == 1) {
 				comp.hide();
-				comp.setName("--Layer " + (layer));
+				comp.setName("-- Layer " + (layer));
 			}
 			doc.add(comp);
 			// PApplet.println("set visible to " + comp.isVisible());
