@@ -82,7 +82,7 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
 		depth = 11;
-		inDepth1 = 2;
+		inDepth1 = 4;
 		inDepth2 = 3;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
@@ -315,8 +315,9 @@ public class FiboTreeGrid extends PApplet {
 				fill(zeroColors[0]);
 				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height);
 				baseShapesColor0.add(tempR);
+				shapes.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("0", inDepth1, x, 0, w, height, zeroColors[1], oneColors[1]) );
+				if (0 < inDepth1) shapes.addAll( makeInnerShapes("0", inDepth1, x, 0, w, height, zeroColors[1], oneColors[1]) );
 				x += w;
 			}
 			else if ('1' == ch) {
@@ -324,8 +325,9 @@ public class FiboTreeGrid extends PApplet {
 				fill(oneColors[0]);
 				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height);
 				baseShapesColor1.add(tempR);
+				shapes.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + w, height));
-				shapes.addAll( makeInnerShapes("1", inDepth1 - 1, x, 0, w, height, zeroColors[2], oneColors[2]) );
+				if (0 < inDepth1 - 1) shapes.addAll( makeInnerShapes("1", inDepth1 - 1, x, 0, w, height, zeroColors[2], oneColors[2]) );
 				x += w;				
 			}
 			else if ('2' == ch) {
@@ -333,8 +335,9 @@ public class FiboTreeGrid extends PApplet {
 				fill(oneColors[oneColors.length - 1]);
 				tempR = BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height);
 				baseShapesColor2.add(tempR);
+				shapes.add(tempR);
 				//shapes.add(BezRectangle.makeLeftTopRightBottom(x, 0, x + 2*w, height));
-				shapes.addAll( makeInnerShapes("11", inDepth1 - 1, x, 0, 2 * w, height, zeroColors[3], oneColors[3]) );
+				if (0 < inDepth1 - 1) shapes.addAll( makeInnerShapes("11", inDepth1 - 1, x, 0, 2 * w, height, zeroColors[3], oneColors[3]) );
 				x += 2*w;				
 			}
 			else { 
@@ -380,15 +383,16 @@ public class FiboTreeGrid extends PApplet {
 				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w0, gridH);
 				bz.add(tempR);
 				innerShapesColor0.add(tempR);
-				bz.addAll( ( makeInmostShapes("0", inDepth2, left, 0, w0, height, zeroColors[4], oneColors[4]) ) );
+				if (0 < inDepth2) bz.addAll( ( makeInmostShapes("0", inDepth2, left, 0, w0, height, zeroColors[4], oneColors[4]) ) );
 				left += w0;
 			}
 			else if ('1' == ch) {
 				fill(color1);
 				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH);
+				tempR.hide();
 				innerShapesColor1.add(tempR);
 				bz.add(tempR);
-				bz.addAll( ( makeInmostShapes("1", inDepth2 - 1, left, 0, w1, height, zeroColors[5], oneColors[5]) ) );
+				if (0 < inDepth2 - 1) bz.addAll( ( makeInmostShapes("1", inDepth2 - 1, left, 0, w1, height, zeroColors[5], oneColors[5]) ) );
 				left += w1;
 			}
 		}
@@ -435,6 +439,7 @@ public class FiboTreeGrid extends PApplet {
 			else if ('1' == ch) {
 				fill(color1);
 				tempR = BezRectangle.makeLeftTopWidthHeight(left, top, w1, gridH);
+				tempR.hide();
 				inmostShapesColor1.add(tempR);
 				bz.add(tempR);
 				left += w1;
