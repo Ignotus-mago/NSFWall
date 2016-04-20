@@ -58,7 +58,7 @@ public class Fibo_002 extends PApplet {
 	/** gap between rectangles, which we won't use for the NSF wall */
 	float gap = 0;
 	/** depth of recursion, 21 for the original fibotree142 art */
-	int depth = 13;
+	int depth = 15;
 	/** threshold for splitting rectangles: values below 1 favor horizontal, values above 1 favor vertical. */
 	float verticality = 4.0f;
 	/** level where we start to do vertical divisions */
@@ -68,13 +68,16 @@ public class Fibo_002 extends PApplet {
 	 *  verticality = arrayLerp(vertArray, (depth - seedTR.level)/((float) depth));
 	 *  where finer divisions have smaller level values.
 	 */
-	float[] vertArray = {1, 0.75f, 0.5f, 0.75f, 0, 6, 12f, 24f };
+	float[] vertArray = {1.5f, 0.5f, 0.67f, 0.75f, 3, 6, 12f, 24f };
 	/** interpolation array with break probabilities */
-	float[] breakArray = {0, 0.01f, 0.02f, 0.25f, 0};
+	float[] breakArray = {0, 0.01f, 0.015f, 0.2f, 0};
 	/** variable for panel width */
 	int panelWidth;
 	/** variable for number of panels */
 	int panelCount = 16;
+	/** snap to interval */
+	float hzSnap = (1536.0f/144.0f) * 0.5f;
+	boolean isSnapHz = true;
 
 	// number formats
 	DecimalFormat fourPlaces;
@@ -258,9 +261,10 @@ public class Fibo_002 extends PApplet {
 	 */
 	public void revYourEngines(boolean useNewColors) {
 		noLoop();
-		if (useNewColors) initWallColors(p142);
+		if (useNewColors) initWallColors(pLight);
 		blockList = new ArrayList<TaggedRectangle>();
-		fiveRectangleWall();
+		// fiveRectangleWall();
+		threeRectangleWall();
 		loop();
 	}
 	
@@ -283,6 +287,23 @@ public class Fibo_002 extends PApplet {
 	}
 	
 	
+	public void threeRectangleWall() {
+		// split into five parts
+		float p21 = 21.0f/144 * 1536;
+		float p34 = 34.0f/144 * 1536;
+		float p89 = (1536 - p34 - p21);
+		TaggedRectangle tr1 = new TaggedRectangle(this, 0, 0, p21, 276, NodeType.zero, depth);
+		blockList.add(tr1);
+		buildRectangles(tr1);
+		TaggedRectangle tr2 = new TaggedRectangle(this, p21, 0, p34, 276, NodeType.zero, depth);
+		blockList.add(tr2);
+		buildRectangles(tr2);
+		TaggedRectangle tr3 = new TaggedRectangle(this, p21 + p34, 0, p89, 276, NodeType.zero, depth);
+		blockList.add(tr3);
+		buildRectangles(tr3);
+	}
+
+	
 	public void fiveRectangleWall() {
 		// split into five parts
 		float p21 = 21.0f/144 * 1536;
@@ -301,6 +322,30 @@ public class Fibo_002 extends PApplet {
 		blockList.add(tr4);
 		buildRectangles(tr4);
 		TaggedRectangle tr5 = new TaggedRectangle(this, p89, p21, 1536 - p89, 276 - p21, NodeType.zero, depth);
+		blockList.add(tr5);
+		buildRectangles(tr5);
+	}
+	
+	
+	public void fiveRectangleWallInverse() {
+		// split into five parts
+		float p21 = 21.0f/144 * 1536;
+		float p34 = 34.0f/144 * 1536;
+		float p89 = (1536 - p34 - p21);
+		float skinnyH = 276 - p21;
+		TaggedRectangle tr1 = new TaggedRectangle(this, 0, skinnyH, p21, p21, NodeType.zero, depth);
+		blockList.add(tr1);
+		buildRectangles(tr1);
+		TaggedRectangle tr2 = new TaggedRectangle(this, p21, skinnyH, p34, p21, NodeType.zero, depth);
+		blockList.add(tr2);
+		buildRectangles(tr2);
+		TaggedRectangle tr3 = new TaggedRectangle(this, p21 + p34, skinnyH, p89, p21, NodeType.zero, depth);
+		blockList.add(tr3);
+		buildRectangles(tr3);
+		TaggedRectangle tr4 = new TaggedRectangle(this, 0, 0, p89, skinnyH, NodeType.zero, depth);
+		blockList.add(tr4);
+		buildRectangles(tr4);
+		TaggedRectangle tr5 = new TaggedRectangle(this, p89, 0, 1536 - p89, skinnyH, NodeType.zero, depth);
 		blockList.add(tr5);
 		buildRectangles(tr5);
 	}
@@ -433,7 +478,7 @@ public class Fibo_002 extends PApplet {
 		float rand = rando.randGenerator().nextFloat();
 		if (rand < breakProb ) {
 			// println("stochastic break at level - " + seedTR.level +", breakProb = "+ breakProb +", rand = "+ rand +", normLevel = "+ normLevel);
-			return;
+			if (seedTR.level < startVertical) return;
 		}
 		
 		// on the one branches, the rectangle splits in two horizontally or vertically
@@ -463,6 +508,13 @@ public class Fibo_002 extends PApplet {
 			float x1 = seedTR.block.getLeft() + gap;
 			float w1 = (float) ( (w - 3 * gap) * shift ) + gap;
 			float w2 = (float) ( (w - 3 * gap) * (1 - shift) ) - gap;
+			if (isSnapHz) {
+				if (w1 > hzSnap) {
+					float snapW = Math.round(w1/hzSnap) * hzSnap;
+					w2 += (w1 - snapW);
+					w1 = snapW;
+				}
+			}
 			float x2 = x1 + w1 + gap;
 			float y1 = seedTR.block.getTop() + gap;
 			BezRectangle r1 = BezRectangle.makeLeftTopWidthHeight(this, x1, y1, w1, h - 2 * gap);
