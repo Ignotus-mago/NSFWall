@@ -61,6 +61,9 @@ public class FiboTreeGrid extends PApplet {
 	/** some values that tend to generate light colors */
 	int[] pLight = { 199, 233, 220,   34, 144, 233,   76, 123, 199,   178, 199, 246,   
       110, 178, 152,   233, 220, 246, 	 123, 131, 144,   36, 94, 152 };
+	/** some more values that tend to generate light colors */
+	int[] pClear = { 199, 233, 246,   220, 233, 254,   199, 220, 233,   186, 199, 220,   
+      144, 199, 233,   165, 178, 186, 	 123, 131, 144,   89, 123, 144 };
 
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree/grid";
@@ -81,9 +84,9 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 11;
-		inDepth1 = 4;
-		inDepth2 = 3;
+		depth = 5;
+		inDepth1 = 7;
+		inDepth2 = 6;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -173,7 +176,7 @@ public class FiboTreeGrid extends PApplet {
 	 * Entry point for initializing and running the L-system and generating geometry.
 	 */
 	public void runSystem() {
-		initWallColors(pLight);
+		initWallColors(pClear);
 		initLists();
 		// prepare to attach the grid lines to the top
 		gridY = height;
