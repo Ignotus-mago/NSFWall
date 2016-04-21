@@ -64,7 +64,8 @@ public class FiboTreeGrid extends PApplet {
 	/** some more values that tend to generate light colors */
 	int[] pClear = { 199, 233, 246,   220, 233, 254,   199, 220, 233,   186, 199, 220,   
       144, 199, 233,   165, 178, 186, 	 123, 131, 144,   89, 123, 144 };
-
+	/** numbers global to use in setup */
+	int[] paletteNumbers;
 
 	String filePath = "/Users/paulhz/Desktop/Eclipse_output/fibotree/grid";
 	String basename = "fgrid";
@@ -84,9 +85,11 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		depth = 5;
-		inDepth1 = 7;
-		inDepth2 = 6;
+		// {depth, inDepth1, inDepth2}: { 11, 5, 4 } yields a fine division in the inmost lines.
+		depth = 11;
+		inDepth1 = 5;
+		inDepth2 = 4;
+		paletteNumbers = pLight;
 		runSystem();
 		// println("---- bloxx expand: "+ bloxx.expandString("0", 4, new StringBuffer(), true));
 	}
@@ -176,7 +179,7 @@ public class FiboTreeGrid extends PApplet {
 	 * Entry point for initializing and running the L-system and generating geometry.
 	 */
 	public void runSystem() {
-		initWallColors(pClear);
+		initWallColors(paletteNumbers);
 		initLists();
 		// prepare to attach the grid lines to the top
 		gridY = height;
@@ -239,15 +242,16 @@ public class FiboTreeGrid extends PApplet {
 		int panelWidth = width/panelCount;
 		ArrayList <BezShape> bez = new ArrayList <BezShape>();
 		// portal
-		fill(192, 192, 192, 192);
+		fill(246, 246, 246, 255);
 		noStroke();
 		bez.add(BezRectangle.makeLeftTopRightBottom(10 * panelWidth, 0, 13 * panelWidth, height));
 		noFill();
-		stroke(255);
-		strokeWeight(1);
-		bez.add(BezLine.makeCoordinates(10 * panelWidth, 0, 13 * panelWidth, height));
-		bez.add(BezLine.makeCoordinates(10 * panelWidth, height, 13 * panelWidth, 0));
+		stroke(192);
+		strokeWeight(0.5f);
+		float[] coords = {10 * panelWidth, 0, 13 * panelWidth, height, 10 * panelWidth, height, 13 * panelWidth, 0, 10 * panelWidth, 0};
+		bez.add(BezPoly.makePoly(coords));
 		// panels
+		stroke(255);
 		for (int i = 1; i < panelCount; i++) {
 			bez.add(BezLine.makeCoordinates(i * panelWidth, 0, i * panelWidth, height));
 		}

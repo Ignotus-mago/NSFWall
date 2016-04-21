@@ -43,6 +43,10 @@ public class Fibo_002 extends PApplet {
 	/** another set of number triplets for generating colors */
 	int[] pLight = { 199, 233, 220,   34, 144, 233,   76, 123, 199,   178, 199, 246,   
       110, 178, 152,   233, 220, 246, 	 123, 131, 144,   36, 94, 152 };
+	/** some more values that tend to generate light colors */
+	int[] pClear = { 199, 233, 246,   220, 233, 254,   199, 220, 233,   186, 199, 220,   
+      144, 199, 233,   165, 178, 186, 	 123, 131, 144,   89, 123, 144 };
+
 	/** an instance of net.paulhertz.util.RandUtil, for random operations */
 	RandUtil rando;
 	boolean animate = false;
@@ -68,9 +72,10 @@ public class Fibo_002 extends PApplet {
 	 *  verticality = arrayLerp(vertArray, (depth - seedTR.level)/((float) depth));
 	 *  where finer divisions have smaller level values.
 	 */
-	float[] vertArray = {1.5f, 0.5f, 0.67f, 0.75f, 3, 6, 12f, 24f };
+	float[] vertArray = {0.5f, 0.5f, 1.0f, 1.0f, 12.0f };
 	/** interpolation array with break probabilities */
-	float[] breakArray = {0, 0.01f, 0.015f, 0.2f, 0};
+	float[] breakArray = {0, 0.0001f, 0.001f, 0.1f, 0.01f};
+	// float[] breakArray = {0, 0.01f, 0.01f, 0.1f, 0.01f};
 	/** variable for panel width */
 	int panelWidth;
 	/** variable for number of panels */
@@ -423,6 +428,12 @@ public class Fibo_002 extends PApplet {
 		int radix = 5;
 		zeroColor = zeroColors[(seedTR.level) % radix];
 		oneColor = oneColors[(seedTR.level) % radix];
+		if (seedTR.level % radix == 0) {
+			// swap colors
+			int temp = zeroColor;
+			zeroColor = oneColor;
+			oneColor = temp;
+		}
 		if (seedTR.tag == NodeType.zero) {
 			addZeroNode(seedTR, zeroColor);
 		}
