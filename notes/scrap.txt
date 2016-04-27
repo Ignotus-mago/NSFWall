@@ -58,21 +58,6 @@ FIXED!: Fix ConcurrentModificationException in Fibo_001, Fibo_002. Seems to come
 ======== scrap =============
 
 
-	public void threeRectangleWall() {
-		// split into five parts
-		float p21 = 21.0f/144 * 1536;
-		float p34 = 34.0f/144 * 1536;
-		float p89 = (1536 - p34 - p21);
-		TaggedRectangle tr1 = new TaggedRectangle(this, 0, 0, p21, 276, NodeType.zero, depth);
-		blockList.add(tr1);
-		buildRectangles(tr1);
-		TaggedRectangle tr2 = new TaggedRectangle(this, p21, 0, p34, 276, NodeType.zero, depth);
-		blockList.add(tr2);
-		buildRectangles(tr2);
-		TaggedRectangle tr3 = new TaggedRectangle(this, p21 + p34, 0, p89, 276, NodeType.zero, depth);
-		blockList.add(tr3);
-		buildRectangles(tr3);
-	}
 
 
 

@@ -85,7 +85,8 @@ public class FiboTreeGrid extends PApplet {
 		// depth of 5 yields 8 bands
 		// depth of 11 yields 144 bands, FIB[depth + 1] == 144;
 		// 11 is ideal for the grid: it divides each of the 16 panels into 9 equal parts
-		// {depth, inDepth1, inDepth2}: { 11, 5, 4 } yields a fine division in the inmost lines.
+		// {depth, inDepth1, inDepth2}: { 11, 5, 4 } yields a fine division in the inmost lines, 
+		// 0.14 and 0.227 pt. If 2 pt = 1 inch, the finest line is about 1/4 inch.
 		depth = 11;
 		inDepth1 = 5;
 		inDepth2 = 4;
