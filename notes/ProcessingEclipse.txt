@@ -25,7 +25,8 @@ public class PlanarSymmetry extends PApplet {
 
 To go back the other way, from Eclipse to Processing:
 
-Paste the source into BBEdit. Specify that it is Java source (popup at bottom of BBEdit window)
+Paste the source into BBEdit. TextWrangler, or your favorite editor. Specify that it is 
+Java source (popup at bottom of BBEdit or TextWrangler window).
 
 Delete last curly bracket.
 Delete line with class header and bracket ("public class Tracker03 extends PApplet {").
@@ -39,5 +40,5 @@ Shift it left (with Text menu or "command=[");
 With text still selected, choose "Detab..." from the text menu. Replace tabs with 2 spaces (standard in Processing).
 Copy and paste into a Processing window. 
 
-There may be a few other edits, depending on your code, but this is tghe basic pattern to follow.
+There may be a few other edits, depending on your code, but this is the basic pattern to follow.
 
